@@ -11,16 +11,16 @@ RUN go mod download
 
 # Copy source and build
 COPY . .
-RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /twitch-miner ./cmd/miner
+RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o /twitch-watcher-go ./cmd/twitch-watcher-go
 
 # Stage 2: Runtime
 FROM gcr.io/distroless/static-debian12
 
-COPY --from=builder /twitch-miner /twitch-miner
+COPY --from=builder /twitch-watcher-go /twitch-watcher-go
 # Only example configs are copied; real configs should be mounted via volume or created at runtime
 COPY --from=builder /app/configs /configs
 
 EXPOSE 8080
 
-ENTRYPOINT ["/twitch-miner"]
+ENTRYPOINT ["/twitch-watcher-go"]
 CMD ["-config", "/configs", "-port", "8080"]

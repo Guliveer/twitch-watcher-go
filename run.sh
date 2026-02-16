@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build and run twitch-miner-go
+# Build and run twitch-watcher-go
 # Usage: ./scripts/run.sh [flags]
 # Example: ./scripts/run.sh -config configs -port 8080 -log-level debug
 
@@ -10,8 +10,8 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 cd "$PROJECT_DIR"
 
-echo "Building twitch-miner..."
-go build -o twitch-miner ./cmd/miner
+echo "Building twitch-watcher-go..."
+go build -o twitch-watcher-go ./cmd/twitch-watcher-go
 
-echo "Starting twitch-miner..."
-./twitch-miner "$@"
+echo "Starting twitch-watcher-go..."
+./twitch-watcher-go "$@"

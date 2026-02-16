@@ -19,6 +19,7 @@ import (
 	"github.com/Guliveer/twitch-miner-go/internal/miner"
 	"github.com/Guliveer/twitch-miner-go/internal/model"
 	"github.com/Guliveer/twitch-miner-go/internal/server"
+	"github.com/joho/godotenv"
 )
 
 const banner = `
@@ -32,6 +33,14 @@ func main() {
 	port := flag.String("port", "8080", "Port for the health/analytics HTTP server")
 	logLevel := flag.String("log-level", "", "Log level: DEBUG, INFO, WARN, ERROR (overrides LOG_LEVEL env)")
 	flag.Parse()
+
+	// Load .env file if it exists (ignore error if file is missing)
+	if err := godotenv.Load(); err != nil {
+		// Only log if the file exists but couldn't be parsed
+		if _, statErr := os.Stat(".env"); statErr == nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to parse .env file: %v\n", err)
+		}
+	}
 
 	level := slog.LevelInfo
 	if *logLevel != "" {
