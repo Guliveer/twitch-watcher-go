@@ -39,6 +39,93 @@ header h1 {
   border-radius: 4px;
 }
 
+/* Filter bar */
+#filter-bar {
+  background: #18181b;
+  padding: 0.75rem 2rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.75rem;
+  border-bottom: 1px solid #26262c;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-group label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #adadb8;
+}
+
+.filter-group select,
+.filter-group input[type="text"] {
+  background: #26262c;
+  color: #efeff1;
+  border: 1px solid #3a3a44;
+  border-radius: 4px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  min-width: 140px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.filter-group select:focus,
+.filter-group input[type="text"]:focus {
+  border-color: #9147ff;
+}
+
+.filter-group select:hover,
+.filter-group input[type="text"]:hover {
+  border-color: #53535f;
+}
+
+.filter-group input[type="text"]::placeholder {
+  color: #53535f;
+}
+
+.filter-actions {
+  margin-left: auto;
+  justify-content: flex-end;
+}
+
+#clear-filters {
+  background: transparent;
+  color: #adadb8;
+  border: 1px solid #53535f;
+  border-radius: 4px;
+  padding: 0.4rem 0.9rem;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+}
+
+#clear-filters:hover {
+  color: #efeff1;
+  border-color: #9147ff;
+}
+
+/* Account badge on streamer cards */
+.badge.account {
+  background: #26262c;
+  color: #adadb8;
+  font-size: 0.65rem;
+  margin-left: 0.4rem;
+  vertical-align: middle;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+}
+
 main {
   max-width: 1200px;
   margin: 2rem auto;
@@ -178,4 +265,27 @@ footer {
   text-align: center;
   padding: 2rem;
   color: #adadb8;
+}
+
+/* Responsive: stack filters vertically on narrow screens */
+@media (max-width: 640px) {
+  #filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem 1rem;
+  }
+
+  .filter-group select,
+  .filter-group input[type="text"] {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .filter-actions {
+    margin-left: 0;
+  }
+
+  #clear-filters {
+    width: 100%;
+  }
 }

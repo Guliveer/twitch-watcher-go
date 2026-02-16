@@ -35,6 +35,9 @@ func (m *Miner) getStreamerByChannelID(channelID string) *model.Streamer {
 
 // addStreamer adds a new streamer to the list and subscribes to its PubSub topics.
 func (m *Miner) addStreamer(ctx context.Context, s *model.Streamer) {
+	if s.AccountUsername == "" {
+		s.AccountUsername = m.cfg.Username
+	}
 	m.streamersMu.Lock()
 	m.streamers = append(m.streamers, s)
 	m.streamersMu.Unlock()
@@ -176,6 +179,7 @@ func (m *Miner) resolveStreamers(ctx context.Context) error {
 
 			streamer := model.NewStreamer(username)
 			streamer.ChannelID = channelID
+			streamer.AccountUsername = m.cfg.Username
 
 			streamerSettingsCfg := settingsMap[username]
 			streamer.Settings = (&config.StreamerSettingsConfig{}).ToStreamerSettings(defaults)

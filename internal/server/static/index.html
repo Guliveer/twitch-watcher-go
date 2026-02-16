@@ -16,6 +16,42 @@
         </div>
     </header>
 
+    <section id="filter-bar">
+        <div class="filter-group">
+            <label for="filter-account">Account</label>
+            <select id="filter-account">
+                <option value="">All Accounts</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-channel">Channel</label>
+            <input type="text" id="filter-channel" placeholder="Search channel…">
+        </div>
+        <div class="filter-group">
+            <label for="filter-category">Category</label>
+            <select id="filter-category">
+                <option value="">All Categories</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-event">Event Type</label>
+            <select id="filter-event">
+                <option value="">All Events</option>
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-online">Status</label>
+            <select id="filter-online">
+                <option value="">All</option>
+                <option value="true">Online</option>
+                <option value="false">Offline</option>
+            </select>
+        </div>
+        <div class="filter-group filter-actions">
+            <button id="clear-filters" type="button">Clear Filters</button>
+        </div>
+    </section>
+
     <main>
         <section id="streamers-section">
             <h2>Streamers</h2>

@@ -15,7 +15,7 @@ priority:
 # Category watcher - auto-discover streams by game
 category_watcher:
   enabled: true
-  poll_interval: 30s
+  poll_interval: 120s
   drops_only: true # Global default: only watch streams with Drops enabled
   categories:
     - slug: "tom-clancys-rainbow-six-siege"
@@ -83,13 +83,13 @@ followers:
 
 # Notifications
 notifications:
-#   telegram:
-#     enabled: true
-#     chat_id: "" # Set via TELEGRAM_CHAT_ID_GULIVEER_ env var
-#     token: "" # Set via TELEGRAM_TOKEN_GULIVEER_ env var
-#     events:
-#       - "DROP_CLAIM"
-#     disable_notification: true
+  telegram:
+    enabled: true
+    chat_id: "" # Set via TELEGRAM_CHAT_ID_GULIVEER_2 env var
+    token: "" # Set via TELEGRAM_TOKEN_GULIVEER_2 env var
+    events:
+      - "DROP_CLAIM"
+    disable_notification: true
 
 # Discord — disabled (commented out in Python config)
 # discord:

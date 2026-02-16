@@ -12,9 +12,10 @@ import (
 type Streamer struct {
 	Mu sync.RWMutex `json:"-"`
 
-	Username string `json:"username"`
-	ChannelID string `json:"channel_id"`
-	DisplayName string `json:"display_name,omitempty"`
+	Username        string `json:"username"`
+	ChannelID       string `json:"channel_id"`
+	DisplayName     string `json:"display_name,omitempty"`
+	AccountUsername string `json:"-"` // The miner account that owns this streamer
 
 	Settings *StreamerSettings `json:"settings,omitempty"`
 

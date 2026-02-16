@@ -43,6 +43,7 @@ func NewAnalyticsServer(addr string, log *logger.Logger) *AnalyticsServer {
 	mux.HandleFunc("GET /api/streamers", s.handleStreamers)
 	mux.HandleFunc("GET /api/streamer/{name}", s.handleStreamer)
 	mux.HandleFunc("GET /api/stats", s.handleStats)
+	mux.HandleFunc("GET /api/filters", s.handleFilters)
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(staticFS)))
 
