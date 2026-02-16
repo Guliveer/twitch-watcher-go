@@ -19,20 +19,9 @@ func (s *AnalyticsServer) handleDashboard(w http.ResponseWriter, r *http.Request
 }
 
 func (s *AnalyticsServer) handleHealth(w http.ResponseWriter, _ *http.Request) {
-	accounts := s.getAccountStatuses()
-	activeCount := 0
-	for _, account := range accounts {
-		if account.Running {
-			activeCount++
-		}
-	}
-
 	writeJSON(w, http.StatusOK, map[string]any{
-		"status":          "ok",
-		"timestamp":       time.Now().UTC().Format(time.RFC3339),
-		"active_accounts": activeCount,
-		"total_accounts":  len(accounts),
-		"accounts":        accounts,
+		"status":    "ok",
+		"timestamp": time.Now().UTC().Format(time.RFC3339),
 	})
 }
 

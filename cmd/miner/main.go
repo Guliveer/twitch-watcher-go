@@ -114,17 +114,6 @@ func main() {
 		return all
 	})
 
-	analyticsServer.SetAccountStatusFunc(func() []server.AccountStatus {
-		statuses := make([]server.AccountStatus, 0, len(miners))
-		for _, minerInstance := range miners {
-			statuses = append(statuses, server.AccountStatus{
-				Username: minerInstance.Username(),
-				Running:  minerInstance.IsRunning(),
-			})
-		}
-		return statuses
-	})
-
 	go func() {
 		if err := analyticsServer.Run(ctx); err != nil && ctx.Err() == nil {
 			rootLog.Error("Analytics server failed", "error", err)
