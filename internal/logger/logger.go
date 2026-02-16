@@ -56,7 +56,7 @@ const (
 var coloredAttrKeys = map[string]string{
 	"streamer": colorMagenta,
 	"channel":  colorMagenta,
-	"category": colorBrightMagenta,
+	"category": colorBlue,
 	"target":   colorMagenta,
 }
 
