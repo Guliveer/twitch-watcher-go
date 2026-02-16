@@ -302,12 +302,7 @@ func (a *Authenticator) FetchIntegrityToken(ctx context.Context) (string, error)
 func generateDeviceID() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	randomBytes := make([]byte, 32)
-	if _, err := rand.Read(randomBytes); err != nil {
-			for i := range randomBytes {
-			randomBytes[i] = charset[i%len(charset)]
-		}
-		return string(randomBytes)
-	}
+	rand.Read(randomBytes)
 	for i := range randomBytes {
 		randomBytes[i] = charset[int(randomBytes[i])%len(charset)]
 	}
@@ -318,8 +313,6 @@ func generateDeviceID() string {
 // It is exported for use by other packages that need transaction IDs.
 func GenerateHex(numBytes int) string {
 	randomBytes := make([]byte, numBytes)
-	if _, err := rand.Read(randomBytes); err != nil {
-		return strings.Repeat("0", numBytes*2)
-	}
+	rand.Read(randomBytes)
 	return fmt.Sprintf("%x", randomBytes)
 }

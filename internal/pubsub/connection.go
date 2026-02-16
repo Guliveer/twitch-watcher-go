@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"nhooyr.io/websocket"
-	"nhooyr.io/websocket/wsjson"
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 
 	"github.com/Guliveer/twitch-miner-go/internal/auth"
 	"github.com/Guliveer/twitch-miner-go/internal/constants"
