@@ -1,0 +1,14 @@
+.git
+.gitignore
+.github
+.vscode
+*.md
+!README.md
+Dockerfile
+fly.toml
+cookies/
+analytics/
+*.log
+*.pkl
+*.pyc
+__pycache__

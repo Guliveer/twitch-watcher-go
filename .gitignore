@@ -1,0 +1,32 @@
+# Binary
+twitch-miner
+*.exe
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+
+# Runtime data
+cookies/**
+*.json
+!configs/*.yaml
+!configs/*.yaml.example
+
+# Logs
+*.log
+logs/
+
+# Environment
+.env
+.env.*
+

@@ -1,0 +1,124 @@
+# Features
+features:
+  claim_drops_startup: true
+  enable_analytics: false
+
+# Watch priority evaluated in order (default: DROPS > ORDER > STREAK)
+priority:
+  - DROPS
+  - ORDER
+  - STREAK
+
+# Category watcher - auto-discover streams by game
+category_watcher:
+  enabled: true
+  poll_interval: 30s
+  drops_only: true # Global default: only watch streams with Drops enabled
+  categories:
+    - slug: "tom-clancys-rainbow-six-siege"
+      drops_only: true
+
+# Default settings for all streamers
+streamer_defaults:
+  make_predictions: true
+  follow_raid: false
+  claim_drops: true
+  claim_moments: true
+  watch_streak: true
+  chat: "ALWAYS" # ALWAYS | NEVER | ONLINE | OFFLINE
+  bet:
+    strategy: "SMART"
+    percentage: 5
+    percentage_gap: 20
+    max_points: 50000
+    minimum_points: 20000
+    stealth_mode: true
+    delay: 6
+    delay_mode: "FROM_END" # FROM_START | FROM_END | PERCENTAGE
+    filter_condition:
+      by: "TOTAL_USERS"
+      where: "LTE"
+      value: 800
+
+# Streamers to watch (order = priority)
+streamers:
+  - username: "Guliveer_"
+  - username: "rainbow6"
+  - username: "rainbow6bravo"
+  - username: "rainbow6bnl"
+  - username: "rainbow6CNTwitch"
+  - username: "rainbow6de"
+  - username: "rainbow6es"
+  - username: "rainbow6fr"
+  - username: "rainbow6hk"
+  - username: "rainbow6hu"
+  - username: "rainbow6it"
+  - username: "rainbow6jp"
+  - username: "rainbow6kr"
+  - username: "rainbow6LATAM"
+  - username: "rainbow6pl"
+  - username: "rainbow6ru"
+  - username: "rainbow6th"
+  - username: "rainbow6tw"
+  - username: "rainbow6sea"
+  - username: "Pengu"
+  - username: "KingGeorge"
+  - username: "AnneMunition"
+  - username: "zironicdk"
+  - username: "Interro"
+  - username: "Beaulo"
+
+# Blacklisted streamers
+blacklist: []
+
+# Follow mode
+followers:
+  enabled: true
+  order: "ASC"
+
+# Notifications
+notifications:
+#   telegram:
+#     enabled: true
+#     chat_id: "" # Set via TELEGRAM_CHAT_ID_GULIVEER_ env var
+#     token: "" # Set via TELEGRAM_TOKEN_GULIVEER_ env var
+#     events:
+#       - "DROP_CLAIM"
+#     disable_notification: true
+
+# Discord — disabled (commented out in Python config)
+# discord:
+#   enabled: true
+#   # webhook_url: ""  # Set via DISCORD_WEBHOOK env var
+#   events:
+#     - "STREAMER_ONLINE"
+#     - "STREAMER_OFFLINE"
+#     - "BET_LOSE"
+
+# Webhook — disabled (commented out in Python config)
+# webhook:
+#   enabled: true
+#   method: "GET"
+#   # endpoint: ""  # Set via WEBHOOK_URL env var
+#   events:
+#     - "STREAMER_ONLINE"
+#     - "STREAMER_OFFLINE"
+#     - "BET_LOSE"
+#     - "CHAT_MENTION"
+
+# Matrix — disabled (commented out in Python config)
+# matrix:
+#   enabled: true
+#   # homeserver, room_id, access_token from env vars
+#   events:
+#     - "STREAMER_ONLINE"
+#     - "STREAMER_OFFLINE"
+#     - "BET_LOSE"
+
+# Pushover — disabled (commented out in Python config)
+# pushover:
+#   enabled: true
+#   # user_key, api_token from env vars
+#   events:
+#     - "CHAT_MENTION"
+#     - "DROP_CLAIM"

@@ -1,0 +1,181 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #0e0e10;
+  color: #efeff1;
+  min-height: 100vh;
+}
+
+header {
+  background: #18181b;
+  padding: 1rem 2rem;
+  border-bottom: 2px solid #9147ff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+header h1 {
+  font-size: 1.4rem;
+  color: #bf94ff;
+}
+
+#stats-bar {
+  display: flex;
+  gap: 1.5rem;
+  font-size: 0.9rem;
+}
+
+#stats-bar span {
+  background: #26262c;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+}
+
+main {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+h2 {
+  margin-bottom: 1rem;
+  color: #bf94ff;
+  font-size: 1.2rem;
+}
+
+/* Streamers grid */
+#streamers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.streamer-card {
+  background: #18181b;
+  border-radius: 8px;
+  padding: 1rem;
+  border-left: 4px solid #53535f;
+  transition: border-color 0.2s;
+}
+
+.streamer-card.online {
+  border-left-color: #00e676;
+}
+
+.streamer-card.offline {
+  border-left-color: #53535f;
+}
+
+.streamer-card .name {
+  font-weight: 600;
+  font-size: 1.05rem;
+  margin-bottom: 0.3rem;
+}
+
+.streamer-card .name a {
+  color: #bf94ff;
+  text-decoration: none;
+}
+
+.streamer-card .name a:hover {
+  text-decoration: underline;
+}
+
+.streamer-card .status {
+  font-size: 0.8rem;
+  margin-bottom: 0.4rem;
+}
+
+.streamer-card .status .badge {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.badge.online {
+  background: #00e676;
+  color: #0e0e10;
+}
+
+.badge.offline {
+  background: #53535f;
+  color: #efeff1;
+}
+
+.badge.category {
+  background: #ff6f00;
+  color: #0e0e10;
+  margin-left: 0.3rem;
+}
+
+.streamer-card .details {
+  font-size: 0.85rem;
+  color: #adadb8;
+}
+
+.streamer-card .details .points {
+  color: #ffca28;
+  font-weight: 600;
+}
+
+/* History table */
+#history-section {
+  margin-top: 2rem;
+}
+
+#history-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #18181b;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#history-table th,
+#history-table td {
+  padding: 0.6rem 1rem;
+  text-align: left;
+}
+
+#history-table th {
+  background: #26262c;
+  color: #bf94ff;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+#history-table td {
+  border-top: 1px solid #26262c;
+  font-size: 0.9rem;
+}
+
+#history-table tr:hover td {
+  background: #1f1f23;
+}
+
+footer {
+  text-align: center;
+  padding: 2rem;
+  color: #53535f;
+  font-size: 0.8rem;
+}
+
+/* Loading state */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #adadb8;
+}

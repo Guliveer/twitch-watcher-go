@@ -1,0 +1,116 @@
+# Example account configuration for twitch-miner-go.
+# Copy this file to configs/<your_twitch_username>.yaml and edit as needed.
+# The filename (without extension) becomes the Twitch username for this account.
+# For example: configs/my_twitch_name.yaml → username "my_twitch_name"
+
+# Features
+features:
+  claim_drops_startup: false
+  enable_analytics: true
+
+# Watch priority evaluated in order, first match wins
+priority:
+  - STREAK
+  - DROPS
+  - ORDER
+
+# Category watcher - auto-discover streams by game
+category_watcher:
+  enabled: false
+  poll_interval: 120s
+  drops_only: false
+  categories:
+    - slug: "just-chatting"
+    - slug: "league-of-legends"
+      drops_only: true
+
+# Default settings for all streamers, can be overridden per-streamer
+streamer_defaults:
+  make_predictions: true
+  follow_raid: true
+  claim_drops: true
+  claim_moments: true
+  watch_streak: true
+  community_goals: false
+  chat: "ONLINE" # ALWAYS | NEVER | ONLINE | OFFLINE
+  bet:
+    strategy: "SMART" # MOST_VOTED | HIGH_ODDS | PERCENTAGE | SMART_MONEY | SMART | NUMBER_1..8
+    percentage: 5
+    percentage_gap: 20
+    max_points: 50000
+    minimum_points: 0
+    stealth_mode: false
+    delay: 6
+    delay_mode: "FROM_END" # FROM_START | FROM_END | PERCENTAGE
+    # filter_condition:
+    #   by: "total_users"
+    #   where: "GTE"
+    #   value: 100
+
+# Streamers to watch
+streamers:
+  - username: "streamer1"
+  - username: "streamer2"
+    # Per-streamer overrides
+    settings:
+      make_predictions: false
+      chat: "NEVER"
+  - username: "streamer3"
+    settings:
+      bet:
+        strategy: "HIGH_ODDS"
+        max_points: 10000
+
+# Blacklisted streamers excluded even if followed
+blacklist:
+  - "unwanted_streamer"
+
+# Follow mode - also watch all followed channels
+followers:
+  enabled: false
+  order: "ASC" # ASC | DESC
+
+# Notifications
+notifications:
+  telegram:
+    enabled: false
+    events:
+      - "BET_WIN"
+      - "BET_LOSE"
+      - "DROP_CLAIM"
+    disable_notification: false
+    # chat_id and token come from environment variables:
+    #   TELEGRAM_CHAT_ID_<UPPERCASE_USERNAME>
+    #   TELEGRAM_TOKEN_<UPPERCASE_USERNAME>
+
+  discord:
+    enabled: false
+    events:
+      - "BET_WIN"
+      - "DROP_CLAIM"
+    # webhook_url from env: DISCORD_WEBHOOK_<UPPERCASE_USERNAME>
+
+  webhook:
+    enabled: false
+    method: "POST" # GET | POST
+    events:
+      - "BET_WIN"
+    # endpoint from env: WEBHOOK_URL_<UPPERCASE_USERNAME>
+
+  matrix:
+    enabled: false
+    events:
+      - "BET_WIN"
+    # Env vars: MATRIX_HOMESERVER_<UPPERCASE_USERNAME>, MATRIX_ROOM_ID_<UPPERCASE_USERNAME>, MATRIX_ACCESS_TOKEN_<UPPERCASE_USERNAME>
+
+  pushover:
+    enabled: false
+    events:
+      - "BET_WIN"
+    # Env vars: PUSHOVER_USER_KEY_<UPPERCASE_USERNAME>, PUSHOVER_TOKEN_<UPPERCASE_USERNAME>
+
+  gotify:
+    enabled: false
+    events:
+      - "DROP_CLAIM"
+    # Env vars: GOTIFY_URL_<UPPERCASE_USERNAME>, GOTIFY_TOKEN_<UPPERCASE_USERNAME>

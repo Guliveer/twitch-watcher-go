@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twitch Miner — Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header>
+        <h1>🎮 Twitch Channel Points Miner</h1>
+        <div id="stats-bar">
+            <span id="total-streamers">Streamers: —</span>
+            <span id="online-streamers">Online: —</span>
+            <span id="total-points">Total Points: —</span>
+        </div>
+    </header>
+
+    <main>
+        <section id="streamers-section">
+            <h2>Streamers</h2>
+            <div id="streamers-grid"></div>
+        </section>
+
+        <section id="history-section">
+            <h2>Earnings History</h2>
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Reason</th>
+                        <th>Count</th>
+                        <th>Points</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <footer>
+        <p>Auto-refreshes every 30 seconds</p>
+    </footer>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
