@@ -43,7 +43,7 @@ func NewPool(a auth.Provider, log *logger.Logger, handler MessageHandler) *Pool 
 		auth:      a,
 		log:       log,
 		handler:   handler,
-		merged:    make(chan *model.Message, 256),
+		merged:    make(chan *model.Message, 64),
 		maxTopics: constants.MaxTopicsPerConn,
 		maxConns:  constants.MaxPubSubConns,
 	}

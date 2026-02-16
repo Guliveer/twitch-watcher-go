@@ -268,6 +268,11 @@ func (m *Miner) handlePredictionResult(ctx context.Context, event *model.EventPr
 		}
 		streamer.Mu.Unlock()
 	}
+
+	// Clean up resolved prediction to prevent unbounded map growth (OOM fix).
+	m.eventsPredictionsMu.Lock()
+	delete(m.eventsPredictions, event.EventID)
+	m.eventsPredictionsMu.Unlock()
 }
 
 func (m *Miner) handlePredictionMade(event *model.EventPrediction) {

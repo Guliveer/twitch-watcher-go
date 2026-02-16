@@ -39,10 +39,14 @@ type spadeCacheEntry struct {
 }
 
 func (sc *spadeCache) get(login string) (string, bool) {
-	sc.mu.RLock()
-	defer sc.mu.RUnlock()
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
 	entry, ok := sc.urls[login]
-	if !ok || time.Since(entry.fetchedAt) > spadeCacheTTL {
+	if !ok {
+		return "", false
+	}
+	if time.Since(entry.fetchedAt) > spadeCacheTTL {
+		delete(sc.urls, login)
 		return "", false
 	}
 	return entry.url, true
@@ -235,7 +239,7 @@ func (c *Client) updateSpadeURL(ctx context.Context, streamer *model.Streamer) e
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 2<<20))
 	if err != nil {
 		return fmt.Errorf("reading response from %s: %w", streamerURL, err)
 	}
@@ -257,7 +261,7 @@ func (c *Client) updateSpadeURL(ctx context.Context, streamer *model.Streamer) e
 	}
 	defer settingsResp.Body.Close()
 
-	settingsBody, err := io.ReadAll(settingsResp.Body)
+	settingsBody, err := io.ReadAll(io.LimitReader(settingsResp.Body, 2<<20))
 	if err != nil {
 		return fmt.Errorf("reading settings response: %w", err)
 	}

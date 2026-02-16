@@ -88,7 +88,7 @@ func fetchClientVersion(ctx context.Context, client *http.Client) (string, error
 		return "", fmt.Errorf("Twitch homepage returned status %d", resp.StatusCode)
 	}
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 2<<20))
 	if err != nil {
 		return "", fmt.Errorf("reading Twitch homepage: %w", err)
 	}

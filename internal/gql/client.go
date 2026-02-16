@@ -10,9 +10,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"strings"
 	"math"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -88,8 +88,8 @@ type Client struct {
 // for connection pooling and the given authenticator.
 func NewClient(authenticator auth.Provider, log *logger.Logger) *Client {
 	transport := &http.Transport{
-		MaxIdleConns:        100,
-		MaxIdleConnsPerHost: 10,
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 5,
 		IdleConnTimeout:     90 * time.Second,
 	}
 
@@ -337,7 +337,7 @@ func (c *Client) doHTTPRequest(ctx context.Context, jsonBody []byte, opName stri
 			return nil, fmt.Errorf("GQL request for %s failed: %w", opName, err)
 		}
 
-		body, readErr := io.ReadAll(resp.Body)
+		body, readErr := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 		resp.Body.Close()
 
 		if readErr != nil {

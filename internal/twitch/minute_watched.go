@@ -83,7 +83,7 @@ func (c *Client) sendMinuteWatchedForStreamer(ctx context.Context, httpClient *h
 		return fmt.Errorf("manifest for %s returned status %d", username, manifestResp.StatusCode)
 	}
 
-	manifestBody, err := io.ReadAll(manifestResp.Body)
+	manifestBody, err := io.ReadAll(io.LimitReader(manifestResp.Body, 256<<10))
 	if err != nil {
 		return fmt.Errorf("reading manifest for %s: %w", username, err)
 	}
@@ -111,7 +111,7 @@ func (c *Client) sendMinuteWatchedForStreamer(ctx context.Context, httpClient *h
 		return fmt.Errorf("stream URL list for %s returned status %d", username, streamResp.StatusCode)
 	}
 
-	streamBody, err := io.ReadAll(streamResp.Body)
+	streamBody, err := io.ReadAll(io.LimitReader(streamResp.Body, 256<<10))
 	if err != nil {
 		return fmt.Errorf("reading stream URL list for %s: %w", username, err)
 	}

@@ -4,6 +4,8 @@ primary_region = 'fra'
 [env]
   PORT = '8080'
   DATA_DIR = '/data'
+  GOMEMLIMIT = "400MiB"
+  GOGC = "50"
 
 [mounts]
   source = "miner_data"
@@ -26,4 +28,4 @@ primary_region = 'fra'
 [[vm]]
   cpu_kind = 'shared'
   cpus = 1
-  memory_mb = 256
+  memory_mb = 512

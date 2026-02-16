@@ -48,13 +48,13 @@ func NewConnection(ctx context.Context, index int, a auth.Provider, log *logger.
 		return nil, fmt.Errorf("dialing PubSub server: %w", err)
 	}
 
-	conn.SetReadLimit(1 << 20) // 1 MB
+	conn.SetReadLimit(128 << 10) // 128 KB
 
 	c := &Connection{
 		index:        index,
 		conn:         conn,
 		topics:       make([]*model.PubSubTopic, 0, constants.MaxTopicsPerConn),
-		messages:     make(chan *model.Message, 128),
+		messages:     make(chan *model.Message, 32),
 		writeCh:      make(chan []byte, 64),
 		auth:         a,
 		log:          log,

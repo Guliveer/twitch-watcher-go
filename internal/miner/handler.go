@@ -36,6 +36,9 @@ func (m *Miner) handleMessage(ctx context.Context, msg *model.Message) {
 	default:
 		m.log.Debug("Unhandled PubSub topic", "topic", msg.Topic, "type", string(msg.Type))
 	}
+
+	// Allow GC to collect the raw JSON map now that all data has been extracted.
+	msg.RawMessage = nil
 }
 
 
