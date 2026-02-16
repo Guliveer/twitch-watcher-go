@@ -1,4 +1,4 @@
-app = 'twitch-miner-go'
+app = 'twitch-watcher-go'
 primary_region = 'fra'
 
 [env]
