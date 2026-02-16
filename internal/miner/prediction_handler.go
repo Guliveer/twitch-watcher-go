@@ -85,8 +85,8 @@ func (m *Miner) handlePredictionCreated(
 		outcomes,
 	)
 
-	closingAfter := event.ClosingBetAfter(msg.Timestamp)
-	if closingAfter <= 0 {
+	secondsUntilClose := event.ClosingBetAfter(msg.Timestamp)
+	if secondsUntilClose <= 0 {
 		m.log.Debug("Prediction window already closed",
 			"streamer", username, "event_id", eventID)
 		return
@@ -106,30 +106,30 @@ func (m *Miner) handlePredictionCreated(
 	m.eventsPredictionsMu.Unlock()
 
 	m.log.Event(ctx, model.EventBetStart,
-		fmt.Sprintf("Placing bet in %.0fs", closingAfter),
+		fmt.Sprintf("Placing bet in %.0fs", secondsUntilClose),
 		"streamer", username,
 		"title", event.Title)
 
-	timer := time.AfterFunc(time.Duration(closingAfter)*time.Second, func() {
+	betTimer := time.AfterFunc(time.Duration(secondsUntilClose)*time.Second, func() {
 		m.pendingTimersMu.Lock()
 		delete(m.pendingTimers, eventID)
 		m.pendingTimersMu.Unlock()
 
 		m.eventsPredictionsMu.RLock()
-		ev, ok := m.eventsPredictions[eventID]
+		prediction, ok := m.eventsPredictions[eventID]
 		m.eventsPredictionsMu.RUnlock()
 		if !ok {
 			return
 		}
 
-		if err := m.twitch.MakePrediction(ctx, streamer, ev); err != nil {
+		if err := m.twitch.MakePrediction(ctx, streamer, prediction); err != nil {
 			m.log.Warn("Failed to place prediction",
 				"streamer", username, "event_id", eventID, "error", err)
 		}
 	})
 
 	m.pendingTimersMu.Lock()
-	m.pendingTimers[eventID] = timer
+	m.pendingTimers[eventID] = betTimer
 	m.pendingTimersMu.Unlock()
 }
 

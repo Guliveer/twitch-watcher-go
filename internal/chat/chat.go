@@ -34,7 +34,7 @@ func NewManager(username, authToken string, log *logger.Logger) *Manager {
 
 	client := twitch.NewClient(username, "oauth:"+authToken)
 
-	m := &Manager{
+	manager := &Manager{
 		client:    client,
 		handler:   handler,
 		username:  username,
@@ -51,7 +51,7 @@ func NewManager(username, authToken string, log *logger.Logger) *Manager {
 	client.OnSelfJoinMessage(handler.OnSelfJoinMessage)
 	client.OnSelfPartMessage(handler.OnSelfPartMessage)
 
-	return m
+	return manager
 }
 
 // Join joins a channel for chat presence. The channel name should be the
@@ -159,8 +159,8 @@ func (m *Manager) JoinedChannels() []string {
 	defer m.mu.Unlock()
 
 	channels := make([]string, 0, len(m.channels))
-	for ch := range m.channels {
-		channels = append(channels, ch)
+	for channelName := range m.channels {
+		channels = append(channels, channelName)
 	}
 	return channels
 }

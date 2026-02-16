@@ -40,7 +40,7 @@ type TokenErrorResponse struct {
 // loginWithDeviceCode orchestrates the full Twitch device code login flow.
 // It requests a device code, displays the verification URI and user code,
 func (a *Authenticator) loginWithDeviceCode(ctx context.Context) error {
-	dcResp, err := a.requestDeviceCode(ctx)
+	deviceCodeResp, err := a.requestDeviceCode(ctx)
 	if err != nil {
 		return fmt.Errorf("requesting device code: %w", err)
 	}
@@ -48,13 +48,13 @@ func (a *Authenticator) loginWithDeviceCode(ctx context.Context) error {
 	fmt.Println()
 	fmt.Printf("📺 Device Code Login [%s]\n", a.username)
 	fmt.Println("─────────────────────────────────────")
-	fmt.Printf("Go to: %s\n", dcResp.VerificationURI)
-	fmt.Printf("Enter code: %s\n", dcResp.UserCode)
+	fmt.Printf("Go to: %s\n", deviceCodeResp.VerificationURI)
+	fmt.Printf("Enter code: %s\n", deviceCodeResp.UserCode)
 	fmt.Println("─────────────────────────────────────")
 	fmt.Println("Waiting for authorization...")
 	fmt.Println()
 
-	tokenResp, err := a.pollForToken(ctx, dcResp.DeviceCode, dcResp.Interval, dcResp.ExpiresIn)
+	tokenResp, err := a.pollForToken(ctx, deviceCodeResp.DeviceCode, deviceCodeResp.Interval, deviceCodeResp.ExpiresIn)
 	if err != nil {
 		return fmt.Errorf("polling for token: %w", err)
 	}
@@ -143,8 +143,8 @@ func (a *Authenticator) pollForToken(ctx context.Context, deviceCode string, int
 		select {
 		case <-ctx.Done():
 			return nil, fmt.Errorf("device code login cancelled: %w", ctx.Err())
-		case t := <-ticker.C:
-			if t.After(deadline) {
+		case tickTime := <-ticker.C:
+			if tickTime.After(deadline) {
 				return nil, fmt.Errorf("device code expired, please try again")
 			}
 

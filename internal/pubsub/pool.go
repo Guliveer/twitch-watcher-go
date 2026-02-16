@@ -37,10 +37,10 @@ type Pool struct {
 }
 
 // NewPool creates a new PubSub connection pool.
-func NewPool(a auth.Provider, log *logger.Logger, handler MessageHandler) *Pool {
+func NewPool(authProvider auth.Provider, log *logger.Logger, handler MessageHandler) *Pool {
 	return &Pool{
 		conns:     make([]*Connection, 0, constants.MaxPubSubConns),
-		auth:      a,
+		auth:      authProvider,
 		log:       log,
 		handler:   handler,
 		merged:    make(chan *model.Message, 64),
@@ -81,8 +81,8 @@ func (p *Pool) Unsubscribe(topics []*model.PubSubTopic) error {
 		topicStr := topic.String()
 
 		for _, conn := range p.conns {
-			for _, ct := range conn.Topics() {
-				if ct.String() == topicStr {
+			for _, connTopic := range conn.Topics() {
+				if connTopic.String() == topicStr {
 					if err := conn.Unsubscribe([]*model.PubSubTopic{topic}); err != nil {
 						p.log.Error("Failed to unsubscribe topic",
 							"topic", topicStr, "error", err)

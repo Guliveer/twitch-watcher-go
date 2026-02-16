@@ -76,11 +76,11 @@ func (c *Client) GetChannelPointsContext(ctx context.Context, channelLogin strin
 	}
 
 	for _, raw := range resp.Community.Channel.Self.CommunityPoints.ActiveMultipliers {
-		var m struct {
+		var multiplier struct {
 			Factor float64 `json:"factor"`
 		}
-		if err := json.Unmarshal(raw, &m); err == nil {
-			result.ActiveMultipliers = append(result.ActiveMultipliers, model.PointsMultiplier{Factor: m.Factor})
+		if err := json.Unmarshal(raw, &multiplier); err == nil {
+			result.ActiveMultipliers = append(result.ActiveMultipliers, model.PointsMultiplier{Factor: multiplier.Factor})
 		}
 	}
 
@@ -162,10 +162,10 @@ func (c *Client) GetStreamInfo(ctx context.Context, channelLogin string) (*Strea
 		}
 	}
 
-	for _, t := range resp.User.Stream.Tags {
+	for _, tag := range resp.User.Stream.Tags {
 		result.Tags = append(result.Tags, model.Tag{
-			ID:            t.ID,
-			LocalizedName: t.LocalizedName,
+			ID:            tag.ID,
+			LocalizedName: tag.LocalizedName,
 		})
 	}
 
@@ -328,8 +328,8 @@ func (c *Client) GetAvailableCampaigns(ctx context.Context, channelID string) ([
 	}
 
 	ids := make([]string, 0, len(resp.Channel.ViewerDropCampaigns))
-	for _, c := range resp.Channel.ViewerDropCampaigns {
-		ids = append(ids, c.ID)
+	for _, campaign := range resp.Channel.ViewerDropCampaigns {
+		ids = append(ids, campaign.ID)
 	}
 	return ids, nil
 }
@@ -363,10 +363,10 @@ func (c *Client) GetDropsDashboard(ctx context.Context, status string) ([]json.R
 
 	var filtered []json.RawMessage
 	for _, raw := range campaigns {
-		var c struct {
+		var campaignStatus struct {
 			Status string `json:"status"`
 		}
-		if err := json.Unmarshal(raw, &c); err == nil && c.Status == status {
+		if err := json.Unmarshal(raw, &campaignStatus); err == nil && campaignStatus.Status == status {
 			filtered = append(filtered, raw)
 		}
 	}
@@ -574,30 +574,30 @@ func (c *Client) GetTopStreamsByCategory(ctx context.Context, categorySlug strin
 	streams := make([]TopStream, 0, len(resp.Game.Streams.Edges))
 	for _, edge := range resp.Game.Streams.Edges {
 		node := edge.Node
-		ts := TopStream{
+		topStream := TopStream{
 			Username:     node.Broadcaster.Login,
 			ChannelID:    node.Broadcaster.ID,
 			DisplayName:  node.Broadcaster.DisplayName,
 			ViewersCount: node.ViewersCount,
 		}
 		if node.Game != nil {
-			ts.GameID = node.Game.ID
-			ts.GameName = node.Game.DisplayName
-			ts.GameSlug = node.Game.Slug
+			topStream.GameID = node.Game.ID
+			topStream.GameName = node.Game.DisplayName
+			topStream.GameSlug = node.Game.Slug
 		}
 
-		if ts.ChannelID == "" {
-			if ts.Username != "" {
-				if id, err := c.GetUserID(ctx, ts.Username); err == nil {
-					ts.ChannelID = id
+		if topStream.ChannelID == "" {
+			if topStream.Username != "" {
+				if id, err := c.GetUserID(ctx, topStream.Username); err == nil {
+					topStream.ChannelID = id
 				}
 			}
-			if ts.ChannelID == "" {
+			if topStream.ChannelID == "" {
 				continue
 			}
 		}
 
-		streams = append(streams, ts)
+		streams = append(streams, topStream)
 	}
 
 	return streams, nil

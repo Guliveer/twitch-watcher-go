@@ -33,7 +33,7 @@ type Dispatcher struct {
 // NewDispatcher creates a Dispatcher from the notification configuration.
 // It initialises all configured and enabled notification providers.
 func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatcher {
-	d := &Dispatcher{log: log}
+	dispatcher := &Dispatcher{log: log}
 
 	httpClient := &http.Client{
 		Timeout: defaultHTTPTimeout,
@@ -45,7 +45,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 	}
 
 	if cfg.Telegram != nil && cfg.Telegram.Enabled {
-		d.notifiers = append(d.notifiers, &Telegram{
+		dispatcher.notifiers = append(dispatcher.notifiers, &Telegram{
 			baseNotifier:        baseNotifier{name: "Telegram", enabled: true, events: parseEvents(cfg.Telegram.Events)},
 			token:               cfg.Telegram.Token,
 			chatID:              cfg.Telegram.ChatID,
@@ -55,7 +55,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 	}
 
 	if cfg.Discord != nil && cfg.Discord.Enabled {
-		d.notifiers = append(d.notifiers, &Discord{
+		dispatcher.notifiers = append(dispatcher.notifiers, &Discord{
 			baseNotifier: baseNotifier{name: "Discord", enabled: true, events: parseEvents(cfg.Discord.Events)},
 			webhookURL:   cfg.Discord.WebhookURL,
 			httpClient:   httpClient,
@@ -67,7 +67,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 		if method == "" {
 			method = http.MethodPost
 		}
-		d.notifiers = append(d.notifiers, &Webhook{
+		dispatcher.notifiers = append(dispatcher.notifiers, &Webhook{
 			baseNotifier: baseNotifier{name: "Webhook", enabled: true, events: parseEvents(cfg.Webhook.Events)},
 			url:          cfg.Webhook.Endpoint,
 			method:       method,
@@ -76,7 +76,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 	}
 
 	if cfg.Matrix != nil && cfg.Matrix.Enabled {
-		d.notifiers = append(d.notifiers, &Matrix{
+		dispatcher.notifiers = append(dispatcher.notifiers, &Matrix{
 			baseNotifier: baseNotifier{name: "Matrix", enabled: true, events: parseEvents(cfg.Matrix.Events)},
 			homeserver:   cfg.Matrix.Homeserver,
 			accessToken:  cfg.Matrix.AccessToken,
@@ -86,7 +86,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 	}
 
 	if cfg.Pushover != nil && cfg.Pushover.Enabled {
-		d.notifiers = append(d.notifiers, &Pushover{
+		dispatcher.notifiers = append(dispatcher.notifiers, &Pushover{
 			baseNotifier: baseNotifier{name: "Pushover", enabled: true, events: parseEvents(cfg.Pushover.Events)},
 			token:        cfg.Pushover.APIToken,
 			userKey:      cfg.Pushover.UserKey,
@@ -95,7 +95,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 	}
 
 	if cfg.Gotify != nil && cfg.Gotify.Enabled {
-		d.notifiers = append(d.notifiers, &Gotify{
+		dispatcher.notifiers = append(dispatcher.notifiers, &Gotify{
 			baseNotifier: baseNotifier{name: "Gotify", enabled: true, events: parseEvents(cfg.Gotify.Events)},
 			url:          cfg.Gotify.URL,
 			token:        cfg.Gotify.Token,
@@ -103,7 +103,7 @@ func NewDispatcher(cfg config.NotificationsConfig, log *logger.Logger) *Dispatch
 		})
 	}
 
-	return d
+	return dispatcher
 }
 
 // Dispatch sends a notification to all enabled notifiers that match the event.
@@ -152,8 +152,8 @@ func parseEvents(names []string) []model.Event {
 }
 
 func containsEvent(events []model.Event, event model.Event) bool {
-	for _, e := range events {
-		if e == event {
+	for _, ev := range events {
+		if ev == event {
 			return true
 		}
 	}

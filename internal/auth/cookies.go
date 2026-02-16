@@ -87,9 +87,9 @@ func (cj *CookieJar) Get(name string) string {
 	cj.mu.RLock()
 	defer cj.mu.RUnlock()
 
-	for _, c := range cj.cookies {
-		if c.Name == name && c.Value != "" {
-			return c.Value
+	for _, cookie := range cj.cookies {
+		if cookie.Name == name && cookie.Value != "" {
+			return cookie.Value
 		}
 	}
 	return ""
@@ -100,8 +100,8 @@ func (cj *CookieJar) Set(name, value string) {
 	cj.mu.Lock()
 	defer cj.mu.Unlock()
 
-	for i, c := range cj.cookies {
-		if c.Name == name {
+	for i, cookie := range cj.cookies {
+		if cookie.Name == name {
 			cj.cookies[i].Value = value
 			return
 		}

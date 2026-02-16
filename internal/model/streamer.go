@@ -136,8 +136,8 @@ func (s *Streamer) HasPointsMultiplier() bool {
 // TotalPointsMultiplier returns the sum of all active multiplier factors.
 func (s *Streamer) TotalPointsMultiplier() float64 {
 	var total float64
-	for _, m := range s.ActiveMultipliers {
-		total += m.Factor
+	for _, multiplier := range s.ActiveMultipliers {
+		total += multiplier.Factor
 	}
 	return total
 }

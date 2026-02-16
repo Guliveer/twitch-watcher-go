@@ -14,7 +14,7 @@ type Campaign struct {
 	InInventory bool `json:"in_inventory"`
 	EndAt time.Time `json:"end_at"`
 	StartAt time.Time `json:"start_at"`
-	DTMatch bool `json:"dt_match"`
+	IsWithinTimeWindow bool `json:"dt_match"`
 	Drops []*Drop `json:"drops,omitempty"`
 	Channels []string `json:"channels,omitempty"`
 }
@@ -29,7 +29,7 @@ func NewCampaign(id, name, status string, game *GameInfo, startAt, endAt time.Ti
 		Status:   status,
 		StartAt:  startAt,
 		EndAt:    endAt,
-		DTMatch:  startAt.Before(now) && now.Before(endAt),
+		IsWithinTimeWindow:  startAt.Before(now) && now.Before(endAt),
 		Channels: channels,
 		Drops:    make([]*Drop, 0),
 	}
@@ -38,9 +38,9 @@ func NewCampaign(id, name, status string, game *GameInfo, startAt, endAt time.Ti
 // ClearDrops removes drops that are outside the time window or already claimed.
 func (c *Campaign) ClearDrops() {
 	filtered := make([]*Drop, 0, len(c.Drops))
-	for _, d := range c.Drops {
-		if d.DTMatch && !d.IsClaimed {
-			filtered = append(filtered, d)
+	for _, drop := range c.Drops {
+		if drop.IsWithinTimeWindow && !drop.IsClaimed {
+			filtered = append(filtered, drop)
 		}
 	}
 	c.Drops = filtered

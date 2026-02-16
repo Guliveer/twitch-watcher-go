@@ -58,7 +58,7 @@ func (m *Miner) handleCommunityPoints(ctx context.Context, msg *model.Message, s
 }
 
 func (m *Miner) handlePointsEarnedOrSpent(ctx context.Context, msg *model.Message, streamer *model.Streamer) {
-	balance := jsonIntPath(msg.Data, "balance", "balance")
+	balance := extractNestedInt(msg.Data, "balance", "balance")
 	if streamer != nil && balance > 0 {
 		streamer.Mu.Lock()
 		streamer.ChannelPoints = balance
@@ -361,22 +361,22 @@ func parseOutcomes(raw any) []model.Outcome {
 
 	outcomes := make([]model.Outcome, 0, len(arr))
 	for _, item := range arr {
-		m, ok := item.(map[string]any)
+		outcomeMap, ok := item.(map[string]any)
 		if !ok {
 			continue
 		}
 
 		outcome := model.Outcome{
-			ID:          jsonutil.StringFromAny(m["id"]),
-			Title:       jsonutil.StringFromAny(m["title"]),
-			Color:       jsonutil.StringFromAny(m["color"]),
-			TotalUsers:  jsonutil.IntFromAny(m["total_users"]),
-			TotalPoints: jsonutil.IntFromAny(m["total_points"]),
-			TopPoints:   jsonutil.IntFromAny(m["top_points"]),
+			ID:          jsonutil.StringFromAny(outcomeMap["id"]),
+			Title:       jsonutil.StringFromAny(outcomeMap["title"]),
+			Color:       jsonutil.StringFromAny(outcomeMap["color"]),
+			TotalUsers:  jsonutil.IntFromAny(outcomeMap["total_users"]),
+			TotalPoints: jsonutil.IntFromAny(outcomeMap["total_points"]),
+			TopPoints:   jsonutil.IntFromAny(outcomeMap["top_points"]),
 		}
 
 		if outcome.TopPoints == 0 {
-			if predictors, ok := m["top_predictors"].([]any); ok && len(predictors) > 0 {
+			if predictors, ok := outcomeMap["top_predictors"].([]any); ok && len(predictors) > 0 {
 				if topPredictor, ok := predictors[0].(map[string]any); ok {
 					outcome.TopPoints = jsonutil.IntFromAny(topPredictor["points"])
 				}
@@ -398,7 +398,7 @@ func parseCommunityGoal(data map[string]any) *model.CommunityGoal {
 	return model.CommunityGoalFromPubSub(data)
 }
 
-func jsonIntPath(data map[string]any, keys ...string) int {
+func extractNestedInt(data map[string]any, keys ...string) int {
 	current := data
 	for i, key := range keys {
 		if i == len(keys)-1 {

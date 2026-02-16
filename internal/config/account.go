@@ -164,82 +164,82 @@ type GotifyConfig struct {
 // ToStreamerSettings converts a StreamerSettingsConfig to a model.StreamerSettings,
 // using defaults for any unset fields.
 func (ssc *StreamerSettingsConfig) ToStreamerSettings(defaults *model.StreamerSettings) *model.StreamerSettings {
-	s := *defaults // copy defaults
+	settings := *defaults // copy defaults
 
 	if ssc == nil {
-		return &s
+		return &settings
 	}
 
 	if ssc.MakePredictions != nil {
-		s.MakePredictions = *ssc.MakePredictions
+		settings.MakePredictions = *ssc.MakePredictions
 	}
 	if ssc.FollowRaid != nil {
-		s.FollowRaid = *ssc.FollowRaid
+		settings.FollowRaid = *ssc.FollowRaid
 	}
 	if ssc.ClaimDrops != nil {
-		s.ClaimDrops = *ssc.ClaimDrops
+		settings.ClaimDrops = *ssc.ClaimDrops
 	}
 	if ssc.ClaimMoments != nil {
-		s.ClaimMoments = *ssc.ClaimMoments
+		settings.ClaimMoments = *ssc.ClaimMoments
 	}
 	if ssc.WatchStreak != nil {
-		s.WatchStreak = *ssc.WatchStreak
+		settings.WatchStreak = *ssc.WatchStreak
 	}
 	if ssc.CommunityGoals != nil {
-		s.CommunityGoalsEnabled = *ssc.CommunityGoals
+		settings.CommunityGoalsEnabled = *ssc.CommunityGoals
 	}
 	if ssc.Chat != "" {
-		s.Chat = model.ParseChatPresence(ssc.Chat)
+		settings.Chat = model.ParseChatPresence(ssc.Chat)
 	}
 	if ssc.Bet != nil {
-		s.Bet = ssc.Bet.ToBetSettings(defaults.Bet)
+		settings.Bet = ssc.Bet.ToBetSettings(defaults.Bet)
 	}
 
-	return &s
+	return &settings
 }
 
 // ToBetSettings converts a BetSettingsConfig to a model.BetSettings,
 // using defaults for any unset fields.
 func (bsc *BetSettingsConfig) ToBetSettings(defaults *model.BetSettings) *model.BetSettings {
-	bs := *defaults // copy defaults
+	betSettings := *defaults // copy defaults
 
 	if bsc == nil {
-		return &bs
+		return &betSettings
 	}
 
 	if bsc.Strategy != "" {
-		bs.Strategy = model.ParseStrategy(bsc.Strategy)
+		betSettings.Strategy = model.ParseStrategy(bsc.Strategy)
 	}
 	if bsc.Percentage != nil {
-		bs.Percentage = *bsc.Percentage
+		betSettings.Percentage = *bsc.Percentage
 	}
 	if bsc.PercentageGap != nil {
-		bs.PercentageGap = *bsc.PercentageGap
+		betSettings.PercentageGap = *bsc.PercentageGap
 	}
 	if bsc.MaxPoints != nil {
-		bs.MaxPoints = *bsc.MaxPoints
+		betSettings.MaxPoints = *bsc.MaxPoints
 	}
 	if bsc.MinimumPoints != nil {
-		bs.MinimumPoints = *bsc.MinimumPoints
+		betSettings.MinimumPoints = *bsc.MinimumPoints
 	}
 	if bsc.StealthMode != nil {
-		bs.StealthMode = *bsc.StealthMode
+		betSettings.StealthMode = *bsc.StealthMode
 	}
 	if bsc.Delay != nil {
-		bs.Delay = *bsc.Delay
+		betSettings.Delay = *bsc.Delay
 	}
 	if bsc.DelayMode != "" {
-		bs.DelayMode = model.ParseDelayMode(bsc.DelayMode)
+		betSettings.DelayMode = model.ParseDelayMode(bsc.DelayMode)
 	}
 	if bsc.FilterCondition != nil {
-		bs.FilterCondition = &model.FilterCondition{
+		betSettings.FilterCondition = &model.FilterCondition{
 			By:    model.OutcomeKey(bsc.FilterCondition.By),
 			Where: model.ParseCondition(bsc.FilterCondition.Where),
 			Value: bsc.FilterCondition.Value,
 		}
 	}
 
-	return &bs
+	return &betSettings
 }
 
 // IsEnabled returns whether this account is enabled.
@@ -254,8 +254,8 @@ func (ac *AccountConfig) IsEnabled() bool {
 // ParsedPriorities converts the string priority list to model.Priority values.
 func (ac *AccountConfig) ParsedPriorities() []model.Priority {
 	priorities := make([]model.Priority, 0, len(ac.Priority))
-	for _, p := range ac.Priority {
-		priorities = append(priorities, model.ParsePriority(p))
+	for _, priorityStr := range ac.Priority {
+		priorities = append(priorities, model.ParsePriority(priorityStr))
 	}
 	return priorities
 }

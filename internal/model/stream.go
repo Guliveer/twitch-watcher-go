@@ -45,13 +45,13 @@ type Tag struct {
 
 // NewStream creates a new Stream with default values.
 func NewStream() *Stream {
-	s := &Stream{
+	stream := &Stream{
 		Tags:        make([]Tag, 0),
 		Campaigns:   make([]Campaign, 0),
 		CampaignIDs: make([]string, 0),
 	}
-	s.InitWatchStreak()
-	return s
+	stream.InitWatchStreak()
+	return stream
 }
 
 // Update refreshes the stream information with new data.

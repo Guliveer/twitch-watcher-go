@@ -45,17 +45,17 @@ func NewCategoryWatcher(
 	blacklist []string,
 	streamerDefaults *model.StreamerSettings,
 ) *CategoryWatcher {
-	cats := make([]categoryEntry, 0, len(cfg.Categories))
-	for _, c := range cfg.Categories {
-		cats = append(cats, categoryEntry{
-			Slug:      c.Slug,
-			DropsOnly: c.DropsOnly,
+	categories := make([]categoryEntry, 0, len(cfg.Categories))
+	for _, categoryCfg := range cfg.Categories {
+		categories = append(categories, categoryEntry{
+			Slug:      categoryCfg.Slug,
+			DropsOnly: categoryCfg.DropsOnly,
 		})
 	}
 
-	bl := make(map[string]bool, len(blacklist))
-	for _, b := range blacklist {
-		bl[strings.ToLower(b)] = true
+	blacklistMap := make(map[string]bool, len(blacklist))
+	for _, blacklistedName := range blacklist {
+		blacklistMap[strings.ToLower(blacklistedName)] = true
 	}
 
 	interval := cfg.PollInterval
@@ -63,18 +63,18 @@ func NewCategoryWatcher(
 		interval = constants.DefaultCategoryWatcherInterval
 	}
 
-	catStreamers := make(map[string]string, len(cats))
-	for _, c := range cats {
-		catStreamers[c.Slug] = ""
+	catStreamers := make(map[string]string, len(categories))
+	for _, cat := range categories {
+		catStreamers[cat.Slug] = ""
 	}
 
 	return &CategoryWatcher{
 		gqlClient:         gqlClient,
 		log:               log,
-		categories:        cats,
+		categories:        categories,
 		globalDropsOnly:   cfg.DropsOnly,
 		pollInterval:      interval,
-		blacklist:         bl,
+		blacklist:         blacklistMap,
 		streamerDefaults:  streamerDefaults,
 		categoryStreamers: catStreamers,
 	}

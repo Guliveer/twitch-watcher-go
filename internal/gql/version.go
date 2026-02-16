@@ -61,8 +61,8 @@ func (c *Client) updateClientVersion(ctx context.Context) string {
 	if err != nil {
 		c.log.Debug("Failed to update client version, using cached",
 			"error", err)
-		v, _ := c.versionCache.get()
-		return v
+		cachedVersion, _ := c.versionCache.get()
+		return cachedVersion
 	}
 
 	c.versionCache.set(version)

@@ -25,7 +25,7 @@ type Drop struct {
 
 	EndAt time.Time `json:"end_at"`
 	StartAt time.Time `json:"start_at"`
-	DTMatch bool `json:"dt_match"`
+	IsWithinTimeWindow bool `json:"dt_match"`
 }
 
 // NewDrop creates a Drop from raw API data.
@@ -38,7 +38,7 @@ func NewDrop(id, name string, benefits []string, minutesRequired int, startAt, e
 		MinutesRequired: minutesRequired,
 		StartAt:         startAt,
 		EndAt:           endAt,
-		DTMatch:         startAt.Before(now) && now.Before(endAt),
+		IsWithinTimeWindow:         startAt.Before(now) && now.Before(endAt),
 	}
 }
 

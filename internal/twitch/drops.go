@@ -28,11 +28,11 @@ func (c *Client) SyncCampaigns(ctx context.Context, streamers []*model.Streamer)
 
 	campaignIDs := make([]string, 0, len(dashboardCampaigns))
 	for _, raw := range dashboardCampaigns {
-		var c struct {
+		var campaignID struct {
 			ID string `json:"id"`
 		}
-		if err := json.Unmarshal(raw, &c); err == nil && c.ID != "" {
-			campaignIDs = append(campaignIDs, c.ID)
+		if err := json.Unmarshal(raw, &campaignID); err == nil && campaignID.ID != "" {
+			campaignIDs = append(campaignIDs, campaignID.ID)
 		}
 	}
 
@@ -51,7 +51,7 @@ func (c *Client) SyncCampaigns(ctx context.Context, streamers []*model.Streamer)
 			c.Log.Debug("Failed to parse campaign", "error", err)
 			continue
 		}
-		if campaign.DTMatch {
+		if campaign.IsWithinTimeWindow {
 			campaign.ClearDrops()
 			if len(campaign.Drops) > 0 {
 				campaigns = append(campaigns, campaign)
@@ -277,23 +277,23 @@ func parseCampaign(raw json.RawMessage) (*model.Campaign, error) {
 
 	var channels []string
 	if data.Allow != nil {
-		for _, ch := range data.Allow.Channels {
-			channels = append(channels, ch.ID)
+		for _, channel := range data.Allow.Channels {
+			channels = append(channels, channel.ID)
 		}
 	}
 
 	campaign := model.NewCampaign(data.ID, data.Name, data.Status, gameInfo, startAt, endAt, channels)
 
-	for _, d := range data.TimeBasedDrops {
-		dropStart, _ := time.Parse(time.RFC3339, d.StartAt)
-		dropEnd, _ := time.Parse(time.RFC3339, d.EndAt)
+	for _, timeDrop := range data.TimeBasedDrops {
+		dropStart, _ := time.Parse(time.RFC3339, timeDrop.StartAt)
+		dropEnd, _ := time.Parse(time.RFC3339, timeDrop.EndAt)
 
 		var benefits []string
-		for _, be := range d.BenefitEdges {
-			benefits = append(benefits, be.Benefit.Name)
+		for _, benefitEdge := range timeDrop.BenefitEdges {
+			benefits = append(benefits, benefitEdge.Benefit.Name)
 		}
 
-		drop := model.NewDrop(d.ID, d.Name, benefits, d.RequiredMinutes, dropStart, dropEnd)
+		drop := model.NewDrop(timeDrop.ID, timeDrop.Name, benefits, timeDrop.RequiredMinutes, dropStart, dropEnd)
 		campaign.Drops = append(campaign.Drops, drop)
 	}
 

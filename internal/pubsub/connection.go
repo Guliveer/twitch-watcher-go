@@ -42,7 +42,7 @@ type Connection struct {
 }
 
 // NewConnection creates a new PubSub Connection and dials the Twitch PubSub server.
-func NewConnection(ctx context.Context, index int, a auth.Provider, log *logger.Logger) (*Connection, error) {
+func NewConnection(ctx context.Context, index int, authProvider auth.Provider, log *logger.Logger) (*Connection, error) {
 	conn, _, err := websocket.Dial(ctx, constants.PubSubURL, &websocket.DialOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("dialing PubSub server: %w", err)
@@ -50,20 +50,20 @@ func NewConnection(ctx context.Context, index int, a auth.Provider, log *logger.
 
 	conn.SetReadLimit(128 << 10) // 128 KB
 
-	c := &Connection{
+	connection := &Connection{
 		index:        index,
 		conn:         conn,
 		topics:       make([]*model.PubSubTopic, 0, constants.MaxTopicsPerConn),
 		messages:     make(chan *model.Message, 32),
 		writeCh:      make(chan []byte, 64),
-		auth:         a,
+		auth:         authProvider,
 		log:          log,
 		nonceToTopic: make(map[string]string),
 		lastPong:     time.Now(),
 		isConnected:  true,
 	}
 
-	return c, nil
+	return connection, nil
 }
 
 // Subscribe sends LISTEN messages for the given topics with the auth token.
@@ -95,8 +95,8 @@ func (c *Connection) Unsubscribe(topics []*model.PubSubTopic) error {
 	defer c.mu.Unlock()
 
 	topicStrings := make([]string, 0, len(topics))
-	for _, t := range topics {
-		topicStrings = append(topicStrings, t.String())
+	for _, topic := range topics {
+		topicStrings = append(topicStrings, topic.String())
 	}
 
 	nonce := auth.GenerateHex(16)
@@ -115,8 +115,8 @@ func (c *Connection) Unsubscribe(topics []*model.PubSubTopic) error {
 		return err
 	}
 
-	for _, t := range topics {
-		c.removeTopic(t)
+	for _, topic := range topics {
+		c.removeTopic(topic)
 	}
 
 	c.log.Debug("Unlistened from topics", "conn", c.index, "topics", topicStrings)

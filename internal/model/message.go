@@ -63,13 +63,13 @@ func ParseMessage(topicFull string, rawMessageJSON []byte) (*Message, error) {
 	}
 
 	msgType := ""
-	if t, ok := msgBody["type"].(string); ok {
-		msgType = t
+	if parsedType, ok := msgBody["type"].(string); ok {
+		msgType = parsedType
 	}
 
 	var data map[string]any
-	if d, ok := msgBody["data"].(map[string]any); ok {
-		data = d
+	if msgData, ok := msgBody["data"].(map[string]any); ok {
+		data = msgData
 	}
 
 	msg := &Message{
@@ -91,9 +91,9 @@ func (m *Message) resolveTimestamp() time.Time {
 	if m.Data == nil {
 		return serverTime(m.RawMessage)
 	}
-	if ts, ok := m.Data["timestamp"].(string); ok {
-		if t, err := time.Parse(time.RFC3339, ts); err == nil {
-			return t
+	if timestampStr, ok := m.Data["timestamp"].(string); ok {
+		if parsed, err := time.Parse(time.RFC3339, timestampStr); err == nil {
+			return parsed
 		}
 	}
 	return serverTime(m.Data)
@@ -142,8 +142,8 @@ func splitTopic(topicFull string) (string, string) {
 
 func serverTime(data map[string]any) time.Time {
 	if data != nil {
-		if st, ok := data["server_time"].(float64); ok {
-			return time.Unix(int64(st), 0).UTC()
+		if serverTimestamp, ok := data["server_time"].(float64); ok {
+			return time.Unix(int64(serverTimestamp), 0).UTC()
 		}
 	}
 	return time.Now().UTC()

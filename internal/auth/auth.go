@@ -301,25 +301,25 @@ func (a *Authenticator) FetchIntegrityToken(ctx context.Context) (string, error)
 // generateDeviceID creates a random 32-character alphanumeric device ID,
 func generateDeviceID() string {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	b := make([]byte, 32)
-	if _, err := rand.Read(b); err != nil {
-			for i := range b {
-			b[i] = charset[i%len(charset)]
+	randomBytes := make([]byte, 32)
+	if _, err := rand.Read(randomBytes); err != nil {
+			for i := range randomBytes {
+			randomBytes[i] = charset[i%len(charset)]
 		}
-		return string(b)
+		return string(randomBytes)
 	}
-	for i := range b {
-		b[i] = charset[int(b[i])%len(charset)]
+	for i := range randomBytes {
+		randomBytes[i] = charset[int(randomBytes[i])%len(charset)]
 	}
-	return string(b)
+	return string(randomBytes)
 }
 
 // GenerateHex creates a random hex string of the given byte length.
 // It is exported for use by other packages that need transaction IDs.
-func GenerateHex(byteLen int) string {
-	b := make([]byte, byteLen)
-	if _, err := rand.Read(b); err != nil {
-		return strings.Repeat("0", byteLen*2)
+func GenerateHex(numBytes int) string {
+	randomBytes := make([]byte, numBytes)
+	if _, err := rand.Read(randomBytes); err != nil {
+		return strings.Repeat("0", numBytes*2)
 	}
-	return fmt.Sprintf("%x", b)
+	return fmt.Sprintf("%x", randomBytes)
 }

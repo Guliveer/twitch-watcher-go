@@ -32,8 +32,8 @@ var (
 const spadeCacheTTL = 6 * time.Hour
 
 type spadeCache struct {
-	mu   sync.RWMutex
-	urls map[string]spadeCacheEntry
+	mu      sync.RWMutex
+	entries map[string]spadeCacheEntry
 }
 
 type spadeCacheEntry struct {
@@ -44,12 +44,12 @@ type spadeCacheEntry struct {
 func (sc *spadeCache) get(login string) (string, bool) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
-	entry, ok := sc.urls[login]
+	entry, ok := sc.entries[login]
 	if !ok {
 		return "", false
 	}
 	if time.Since(entry.fetchedAt) > spadeCacheTTL {
-		delete(sc.urls, login)
+		delete(sc.entries, login)
 		return "", false
 	}
 	return entry.url, true
@@ -58,7 +58,7 @@ func (sc *spadeCache) get(login string) (string, bool) {
 func (sc *spadeCache) set(login, url string) {
 	sc.mu.Lock()
 	defer sc.mu.Unlock()
-	sc.urls[login] = spadeCacheEntry{url: url, fetchedAt: time.Now()}
+	sc.entries[login] = spadeCacheEntry{url: url, fetchedAt: time.Now()}
 }
 
 // Client is the high-level Twitch API facade combining auth and GQL client.
@@ -81,7 +81,7 @@ func NewClient(cfg *config.AccountConfig, log *logger.Logger) (*Client, error) {
 		GQL:       gqlClient,
 		Log:       log,
 		cfg:       cfg,
-		spadeURLs: &spadeCache{urls: make(map[string]spadeCacheEntry)},
+		spadeURLs: &spadeCache{entries: make(map[string]spadeCacheEntry)},
 	}, nil
 }
 

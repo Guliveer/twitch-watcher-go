@@ -24,9 +24,9 @@ func (m *Miner) getStreamerByChannelID(channelID string) *model.Streamer {
 	defer m.streamersMu.RUnlock()
 	for _, s := range m.streamers {
 		s.Mu.RLock()
-		cid := s.ChannelID
+		streamerChannelID := s.ChannelID
 		s.Mu.RUnlock()
-		if cid == channelID {
+		if streamerChannelID == channelID {
 			return s
 		}
 	}
@@ -106,8 +106,8 @@ func (m *Miner) resolveStreamers(ctx context.Context) error {
 	defaults := m.getStreamerDefaults()
 
 	blacklist := make(map[string]bool, len(m.cfg.Blacklist))
-	for _, b := range m.cfg.Blacklist {
-		blacklist[strings.ToLower(b)] = true
+	for _, blacklistedName := range m.cfg.Blacklist {
+		blacklist[strings.ToLower(blacklistedName)] = true
 	}
 
 	var usernames []string
@@ -132,10 +132,10 @@ func (m *Miner) resolveStreamers(ctx context.Context) error {
 			for _, u := range usernames {
 				existing[u] = true
 			}
-			for _, f := range followers {
-				fl := strings.ToLower(f)
-				if !existing[fl] && !blacklist[fl] {
-					usernames = append(usernames, fl)
+			for _, followerLogin := range followers {
+					followerLower := strings.ToLower(followerLogin)
+					if !existing[followerLower] && !blacklist[followerLower] {
+						usernames = append(usernames, followerLower)
 				}
 			}
 		}
@@ -158,33 +158,33 @@ func (m *Miner) resolveStreamers(ctx context.Context) error {
 		}
 
 		wg.Add(1)
-		go func(idx int, uname string) {
+		go func(idx int, username string) {
 			defer wg.Done()
 			sem <- struct{}{}        // acquire semaphore
 			defer func() { <-sem }() // release semaphore
 
-			channelID, err := m.twitch.GetChannelID(ctx, uname)
+			channelID, err := m.twitch.GetChannelID(ctx, username)
 			if err != nil {
 				m.log.Warn("Failed to resolve channel ID, skipping",
-					"streamer", uname, "error", err)
+					"streamer", username, "error", err)
 				return
 			}
 			if channelID == "" {
-				m.log.Warn("Empty channel ID, skipping", "streamer", uname)
+				m.log.Warn("Empty channel ID, skipping", "streamer", username)
 				return
 			}
 
-			streamer := model.NewStreamer(uname)
+			streamer := model.NewStreamer(username)
 			streamer.ChannelID = channelID
 
-			ssc := settingsMap[uname]
+			streamerSettingsCfg := settingsMap[username]
 			streamer.Settings = (&config.StreamerSettingsConfig{}).ToStreamerSettings(defaults)
-			if ssc != nil {
-				streamer.Settings = ssc.ToStreamerSettings(defaults)
+			if streamerSettingsCfg != nil {
+				streamer.Settings = streamerSettingsCfg.ToStreamerSettings(defaults)
 			}
 
 			m.log.Info("📋 Loaded",
-				"streamer", uname, "channel_id", channelID)
+				"streamer", username, "channel_id", channelID)
 
 			results <- resolveResult{streamer: streamer, index: idx}
 		}(i, username)

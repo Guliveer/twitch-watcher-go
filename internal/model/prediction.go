@@ -322,20 +322,20 @@ func (b *Bet) UpdateOutcomes(updates []Outcome) {
 }
 
 func (b *Bet) outcomeValue(index int, key OutcomeKey) float64 {
-	o := b.Outcomes[index]
+	outcome := b.Outcomes[index]
 	switch key {
 	case OutcomeKeyTotalUsers:
-		return float64(o.TotalUsers)
+		return float64(outcome.TotalUsers)
 	case OutcomeKeyTotalPoints:
-		return float64(o.TotalPoints)
+		return float64(outcome.TotalPoints)
 	case OutcomeKeyPercentageUsers:
-		return o.PercentageUsers
+		return outcome.PercentageUsers
 	case OutcomeKeyOdds:
-		return o.Odds
+		return outcome.Odds
 	case OutcomeKeyOddsPercentage:
-		return o.OddsPercentage
+		return outcome.OddsPercentage
 	case OutcomeKeyTopPoints:
-		return float64(o.TopPoints)
+		return float64(outcome.TopPoints)
 	default:
 		return 0
 	}
@@ -370,22 +370,22 @@ func (b *Bet) Skip() (bool, float64) {
 	condition := fc.Where
 	value := fc.Value
 
-	fixedKey := key
+	resolvedKey := key
 	if key == OutcomeKeyDecisionUsers || key == OutcomeKeyDecisionPoints {
 		if key == OutcomeKeyDecisionUsers {
-			fixedKey = OutcomeKeyTotalUsers
+			resolvedKey = OutcomeKeyTotalUsers
 		} else {
-			fixedKey = OutcomeKeyTotalPoints
+			resolvedKey = OutcomeKeyTotalPoints
 		}
 	}
 
 	var comparedValue float64
 	if key == OutcomeKeyTotalUsers || key == OutcomeKeyTotalPoints {
 		for i := range b.Outcomes {
-			comparedValue += b.outcomeValue(i, fixedKey)
+			comparedValue += b.outcomeValue(i, resolvedKey)
 		}
 	} else {
-		comparedValue = b.outcomeValue(b.Decision.Choice, fixedKey)
+		comparedValue = b.outcomeValue(b.Decision.Choice, resolvedKey)
 	}
 
 	switch condition {
@@ -460,8 +460,8 @@ func (b *Bet) Calculate(balance int) BetDecision {
 		}
 
 		if b.Settings.StealthMode && amount >= chosen.TopPoints && chosen.TopPoints > 0 {
-			reduceAmount := 1.0 + rand.Float64()*4.0
-			amount = chosen.TopPoints - int(reduceAmount)
+			stealthReduction := 1.0 + rand.Float64()*4.0
+			amount = chosen.TopPoints - int(stealthReduction)
 		}
 
 		b.Decision.Amount = amount

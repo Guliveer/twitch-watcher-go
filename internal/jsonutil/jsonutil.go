@@ -5,16 +5,16 @@ package jsonutil
 import "encoding/json"
 
 // IntFromAny converts various numeric types to int.
-func IntFromAny(v interface{}) int {
-	switch n := v.(type) {
+func IntFromAny(value interface{}) int {
+	switch num := value.(type) {
 	case float64:
-		return int(n)
+		return int(num)
 	case int:
-		return n
+		return num
 	case int64:
-		return int(n)
+		return int(num)
 	case json.Number:
-		i, _ := n.Int64()
+		i, _ := num.Int64()
 		return int(i)
 	default:
 		return 0
@@ -47,26 +47,26 @@ func StringFromAny(v interface{}) string {
 }
 
 // IntFromMap extracts an int from a map by key.
-func IntFromMap(m map[string]interface{}, key string) int {
-	if v, ok := m[key]; ok {
+func IntFromMap(data map[string]interface{}, key string) int {
+	if v, ok := data[key]; ok {
 		return IntFromAny(v)
 	}
 	return 0
 }
 
 // StringFromMap extracts a string from a map by key.
-func StringFromMap(m map[string]interface{}, key string) string {
-	if v, ok := m[key]; ok {
+func StringFromMap(data map[string]interface{}, key string) string {
+	if v, ok := data[key]; ok {
 		return StringFromAny(v)
 	}
 	return ""
 }
 
 // BoolFromMap extracts a bool from a map by key.
-func BoolFromMap(m map[string]interface{}, key string) bool {
-	if v, ok := m[key]; ok {
-		if b, ok := v.(bool); ok {
-			return b
+func BoolFromMap(data map[string]interface{}, key string) bool {
+	if v, ok := data[key]; ok {
+		if boolVal, ok := v.(bool); ok {
+			return boolVal
 		}
 	}
 	return false

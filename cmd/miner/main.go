@@ -99,8 +99,8 @@ func main() {
 			continue
 		}
 		accountLog := rootLog.WithAccount(cfg.Username)
-		m := miner.NewMiner(cfg, accountLog)
-		miners = append(miners, m)
+		minerInstance := miner.NewMiner(cfg, accountLog)
+		miners = append(miners, minerInstance)
 	}
 
 	addr := ":" + httpPort
@@ -108,18 +108,18 @@ func main() {
 
 	analyticsServer.SetStreamerFunc(func() []*model.Streamer {
 		var all []*model.Streamer
-		for _, m := range miners {
-			all = append(all, m.Streamers()...)
+		for _, minerInstance := range miners {
+			all = append(all, minerInstance.Streamers()...)
 		}
 		return all
 	})
 
 	analyticsServer.SetAccountStatusFunc(func() []server.AccountStatus {
 		statuses := make([]server.AccountStatus, 0, len(miners))
-		for _, m := range miners {
+		for _, minerInstance := range miners {
 			statuses = append(statuses, server.AccountStatus{
-				Username: m.Username(),
-				Running:  m.IsRunning(),
+				Username: minerInstance.Username(),
+				Running:  minerInstance.IsRunning(),
 			})
 		}
 		return statuses
@@ -134,21 +134,21 @@ func main() {
 	rootLog.Info("🌐 Health/analytics server started", "addr", addr)
 
 	var wg sync.WaitGroup
-	for i, m := range miners {
+	for i, minerInstance := range miners {
 		cfg := configs[i]
 		accountLog := rootLog.WithAccount(cfg.Username)
 
 		wg.Add(1)
-		go func(m *miner.Miner) {
+		go func(minerInstance *miner.Miner) {
 			defer wg.Done()
-			if err := m.Run(ctx); err != nil {
+			if err := minerInstance.Run(ctx); err != nil {
 				if ctx.Err() != nil {
 					accountLog.Info("Miner stopped due to shutdown", "account", cfg.Username)
 				} else {
 					accountLog.Error("Miner failed", "account", cfg.Username, "error", err)
 				}
 			}
-		}(m)
+		}(minerInstance)
 	}
 
 	wg.Wait()

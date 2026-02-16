@@ -207,13 +207,13 @@ func (c *Client) PostGQLBatch(ctx context.Context, ops []constants.GQLOperation,
 	}
 
 	results := make([]json.RawMessage, len(responses))
-	for i, r := range responses {
-		if len(r.Errors) > 0 {
+	for i, response := range responses {
+		if len(response.Errors) > 0 {
 			c.log.Warn("GQL batch error",
 				"index", i,
-				"error", r.Errors[0].Message)
+				"error", response.Errors[0].Message)
 		}
-		results[i] = r.Data
+		results[i] = response.Data
 	}
 
 	return results, nil

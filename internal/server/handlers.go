@@ -21,8 +21,8 @@ func (s *AnalyticsServer) handleDashboard(w http.ResponseWriter, r *http.Request
 func (s *AnalyticsServer) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	accounts := s.getAccountStatuses()
 	activeCount := 0
-	for _, a := range accounts {
-		if a.Running {
+	for _, account := range accounts {
+		if account.Running {
 			activeCount++
 		}
 	}
@@ -40,25 +40,25 @@ func (s *AnalyticsServer) handleStreamers(w http.ResponseWriter, _ *http.Request
 	streamers := s.getStreamers()
 	result := make([]streamerSummary, 0, len(streamers))
 
-	for _, st := range streamers {
-		st.Mu.RLock()
+	for _, streamer := range streamers {
+		streamer.Mu.RLock()
 		summary := streamerSummary{
-			Username:          st.Username,
-			DisplayName:       st.DisplayName,
-			ChannelID:         st.ChannelID,
-			IsOnline:          st.IsOnline,
-			IsCategoryWatched: st.IsCategoryWatched,
-			ChannelPoints:     st.ChannelPoints,
-			StreamerURL:       st.StreamerURL,
+			Username:          streamer.Username,
+			DisplayName:       streamer.DisplayName,
+			ChannelID:         streamer.ChannelID,
+			IsOnline:          streamer.IsOnline,
+			IsCategoryWatched: streamer.IsCategoryWatched,
+			ChannelPoints:     streamer.ChannelPoints,
+			StreamerURL:       streamer.StreamerURL,
 		}
-		if st.Stream != nil && st.Stream.Game != nil {
-			summary.Game = st.Stream.Game.DisplayName
+		if streamer.Stream != nil && streamer.Stream.Game != nil {
+			summary.Game = streamer.Stream.Game.DisplayName
 		}
-		if st.Stream != nil {
-			summary.ViewersCount = st.Stream.ViewersCount
-			summary.Title = st.Stream.Title
+		if streamer.Stream != nil {
+			summary.ViewersCount = streamer.Stream.ViewersCount
+			summary.Title = streamer.Stream.Title
 		}
-		st.Mu.RUnlock()
+		streamer.Mu.RUnlock()
 		result = append(result, summary)
 	}
 
@@ -73,43 +73,43 @@ func (s *AnalyticsServer) handleStreamer(w http.ResponseWriter, r *http.Request)
 	}
 
 	streamers := s.getStreamers()
-	for _, st := range streamers {
-		st.Mu.RLock()
-		if strings.ToLower(st.Username) == name {
+	for _, streamer := range streamers {
+		streamer.Mu.RLock()
+		if strings.ToLower(streamer.Username) == name {
 			detail := streamerDetail{
-				Username:          st.Username,
-				DisplayName:       st.DisplayName,
-				ChannelID:         st.ChannelID,
-				IsOnline:          st.IsOnline,
-				IsCategoryWatched: st.IsCategoryWatched,
-				CategorySlug:      st.CategorySlug,
-				ChannelPoints:     st.ChannelPoints,
-				StreamerURL:       st.StreamerURL,
-				ViewerIsMod:       st.ViewerIsMod,
-				History:           st.History,
+				Username:          streamer.Username,
+				DisplayName:       streamer.DisplayName,
+				ChannelID:         streamer.ChannelID,
+				IsOnline:          streamer.IsOnline,
+				IsCategoryWatched: streamer.IsCategoryWatched,
+				CategorySlug:      streamer.CategorySlug,
+				ChannelPoints:     streamer.ChannelPoints,
+				StreamerURL:       streamer.StreamerURL,
+				ViewerIsMod:       streamer.ViewerIsMod,
+				History:           streamer.History,
 			}
-			if st.Stream != nil {
+			if streamer.Stream != nil {
 				detail.Stream = &streamInfo{
-					BroadcastID:  st.Stream.BroadcastID,
-					Title:        st.Stream.Title,
-					ViewersCount: st.Stream.ViewersCount,
-					DropsTags:    st.Stream.DropsTags,
+					BroadcastID:  streamer.Stream.BroadcastID,
+					Title:        streamer.Stream.Title,
+					ViewersCount: streamer.Stream.ViewersCount,
+					DropsTags:    streamer.Stream.DropsTags,
 				}
-				if st.Stream.Game != nil {
-					detail.Stream.Game = st.Stream.Game.DisplayName
+				if streamer.Stream.Game != nil {
+					detail.Stream.Game = streamer.Stream.Game.DisplayName
 				}
 			}
-			if len(st.ActiveMultipliers) > 0 {
-				detail.Multipliers = make([]float64, 0, len(st.ActiveMultipliers))
-				for _, m := range st.ActiveMultipliers {
+			if len(streamer.ActiveMultipliers) > 0 {
+				detail.Multipliers = make([]float64, 0, len(streamer.ActiveMultipliers))
+				for _, m := range streamer.ActiveMultipliers {
 					detail.Multipliers = append(detail.Multipliers, m.Factor)
 				}
 			}
-			st.Mu.RUnlock()
+			streamer.Mu.RUnlock()
 			writeJSON(w, http.StatusOK, detail)
 			return
 		}
-		st.Mu.RUnlock()
+		streamer.Mu.RUnlock()
 	}
 
 	writeJSON(w, http.StatusNotFound, errorResponse{Error: "streamer not found"})
@@ -123,19 +123,19 @@ func (s *AnalyticsServer) handleStats(w http.ResponseWriter, _ *http.Request) {
 		History:        make(map[string]historyAggregate),
 	}
 
-	for _, st := range streamers {
-		st.Mu.RLock()
-		stats.TotalPoints += st.ChannelPoints
-		if st.IsOnline {
+	for _, streamer := range streamers {
+		streamer.Mu.RLock()
+		stats.TotalPoints += streamer.ChannelPoints
+		if streamer.IsOnline {
 			stats.OnlineStreamers++
 		}
-		for reason, entry := range st.History {
+		for reason, entry := range streamer.History {
 			agg := stats.History[reason]
 			agg.Counter += entry.Counter
 			agg.Amount += entry.Amount
 			stats.History[reason] = agg
 		}
-		st.Mu.RUnlock()
+		streamer.Mu.RUnlock()
 	}
 
 	writeJSON(w, http.StatusOK, stats)
@@ -194,10 +194,10 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
-func writeJSON(w http.ResponseWriter, status int, v any) {
+func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)
 	enc := json.NewEncoder(w)
 	enc.SetIndent("", "  ")
-	enc.Encode(v) //nolint:errcheck
+	enc.Encode(data) //nolint:errcheck
 }

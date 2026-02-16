@@ -205,7 +205,7 @@ func ParseLevel(s string) slog.Level {
 
 type colorHandler struct {
 	mu          sync.Mutex
-	w           io.Writer
+	writer      io.Writer
 	level       slog.Level
 	colored     bool
 	accountName string
@@ -214,7 +214,7 @@ type colorHandler struct {
 
 func newColorHandler(w io.Writer, level slog.Level, colored bool, accountName string) *colorHandler {
 	return &colorHandler{
-		w:           w,
+		writer:      w,
 		level:       level,
 		colored:     colored,
 		accountName: accountName,
@@ -225,13 +225,13 @@ func (h *colorHandler) Enabled(_ context.Context, level slog.Level) bool {
 	return level >= h.level
 }
 
-func (h *colorHandler) Handle(_ context.Context, r slog.Record) error {
+func (h *colorHandler) Handle(_ context.Context, record slog.Record) error {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	timeStr := r.Time.Format("02/01/06 15:04:05")
-	levelStr := r.Level.String()
-	msg := r.Message
+	timeStr := record.Time.Format("02/01/06 15:04:05")
+	levelStr := record.Level.String()
+	msg := record.Message
 
 	prefix := ""
 	if h.accountName != "" {
@@ -239,14 +239,14 @@ func (h *colorHandler) Handle(_ context.Context, r slog.Record) error {
 	}
 
 	if h.colored {
-		levelColor := h.levelColor(r.Level)
-		fmt.Fprintf(h.w, "%s%s - %s%s%s - %s%s",
+		levelColor := h.levelColor(record.Level)
+		fmt.Fprintf(h.writer, "%s%s - %s%s%s - %s%s",
 			colorGray, timeStr,
 			levelColor, levelStr, colorReset,
 			prefix, msg,
 		)
 	} else {
-		fmt.Fprintf(h.w, "%s - %s - %s%s", timeStr, levelStr, prefix, msg)
+		fmt.Fprintf(h.writer, "%s - %s - %s%s", timeStr, levelStr, prefix, msg)
 	}
 
 	for _, a := range h.attrs {
@@ -256,53 +256,53 @@ func (h *colorHandler) Handle(_ context.Context, r slog.Record) error {
 				if urlFmt, ok := hyperlinkAttrKeys[a.Key]; ok {
 					val = hyperlink(fmt.Sprintf(urlFmt, val), val)
 				}
-				fmt.Fprintf(h.w, " %s=%s%s%s", a.Key, color, val, colorReset)
+				fmt.Fprintf(h.writer, " %s=%s%s%s", a.Key, color, val, colorReset)
 				continue
 			}
 		}
-		fmt.Fprintf(h.w, " %s=%v", a.Key, a.Value)
+		fmt.Fprintf(h.writer, " %s=%v", a.Key, a.Value)
 	}
 
-	r.Attrs(func(a slog.Attr) bool {
+	record.Attrs(func(a slog.Attr) bool {
 		if h.colored {
 			if color, ok := coloredAttrKeys[a.Key]; ok {
 				val := fmt.Sprintf("%v", a.Value)
 				if urlFmt, ok := hyperlinkAttrKeys[a.Key]; ok {
 					val = hyperlink(fmt.Sprintf(urlFmt, val), val)
 				}
-				fmt.Fprintf(h.w, " %s=%s%s%s", a.Key, color, val, colorReset)
+				fmt.Fprintf(h.writer, " %s=%s%s%s", a.Key, color, val, colorReset)
 				return true
 			}
 		}
-		fmt.Fprintf(h.w, " %s=%v", a.Key, a.Value)
+		fmt.Fprintf(h.writer, " %s=%v", a.Key, a.Value)
 		return true
 	})
 
-	fmt.Fprintln(h.w)
+	fmt.Fprintln(h.writer)
 	return nil
 }
 
 func (h *colorHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
 	return &colorHandler{
-		w:           h.w,
+		writer:      h.writer,
 		level:       h.level,
 		colored:     h.colored,
 		accountName: h.accountName,
-		attrs:       append(slices(h.attrs), attrs...),
+		attrs:       append(copyAttrs(h.attrs), attrs...),
 	}
 }
 
 func (h *colorHandler) WithGroup(name string) slog.Handler {
 	return &colorHandler{
-		w:           h.w,
+		writer:      h.writer,
 		level:       h.level,
 		colored:     h.colored,
 		accountName: h.accountName,
-		attrs:       slices(h.attrs),
+		attrs:       copyAttrs(h.attrs),
 	}
 }
 
-func slices(attrs []slog.Attr) []slog.Attr {
+func copyAttrs(attrs []slog.Attr) []slog.Attr {
 	if len(attrs) == 0 {
 		return nil
 	}
@@ -329,8 +329,8 @@ type multiHandler struct {
 	handlers []slog.Handler
 }
 
-func (mh *multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
-	for _, h := range mh.handlers {
+func (handler *multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	for _, h := range handler.handlers {
 		if h.Enabled(ctx, level) {
 			return true
 		}
@@ -338,8 +338,8 @@ func (mh *multiHandler) Enabled(ctx context.Context, level slog.Level) bool {
 	return false
 }
 
-func (mh *multiHandler) Handle(ctx context.Context, r slog.Record) error {
-	for _, h := range mh.handlers {
+func (handler *multiHandler) Handle(ctx context.Context, r slog.Record) error {
+	for _, h := range handler.handlers {
 		if h.Enabled(ctx, r.Level) {
 			if err := h.Handle(ctx, r); err != nil {
 				return err
@@ -349,17 +349,17 @@ func (mh *multiHandler) Handle(ctx context.Context, r slog.Record) error {
 	return nil
 }
 
-func (mh *multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
-	newHandlers := make([]slog.Handler, len(mh.handlers))
-	for i, h := range mh.handlers {
+func (handler *multiHandler) WithAttrs(attrs []slog.Attr) slog.Handler {
+	newHandlers := make([]slog.Handler, len(handler.handlers))
+	for i, h := range handler.handlers {
 		newHandlers[i] = h.WithAttrs(attrs)
 	}
 	return &multiHandler{handlers: newHandlers}
 }
 
-func (mh *multiHandler) WithGroup(name string) slog.Handler {
-	newHandlers := make([]slog.Handler, len(mh.handlers))
-	for i, h := range mh.handlers {
+func (handler *multiHandler) WithGroup(name string) slog.Handler {
+	newHandlers := make([]slog.Handler, len(handler.handlers))
+	for i, h := range handler.handlers {
 		newHandlers[i] = h.WithGroup(name)
 	}
 	return &multiHandler{handlers: newHandlers}

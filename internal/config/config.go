@@ -98,56 +98,56 @@ func getEnv(key, username string) string {
 // applyEnvOverrides overlays environment variables for secrets.
 // Every variable requires the username suffix: KEY_<UPPERCASE_USERNAME>
 func applyEnvOverrides(cfg *AccountConfig) {
-	u := cfg.Username
+	username := cfg.Username
 
 	if cfg.Notifications.Telegram != nil {
-		if v := getEnv("TELEGRAM_TOKEN", u); v != "" {
-			cfg.Notifications.Telegram.Token = v
+		if envValue := getEnv("TELEGRAM_TOKEN", username); envValue != "" {
+			cfg.Notifications.Telegram.Token = envValue
 		}
-		if v := getEnv("TELEGRAM_CHAT_ID", u); v != "" {
-			cfg.Notifications.Telegram.ChatID = v
+		if envValue := getEnv("TELEGRAM_CHAT_ID", username); envValue != "" {
+			cfg.Notifications.Telegram.ChatID = envValue
 		}
 	}
 
 	if cfg.Notifications.Discord != nil {
-		if v := getEnv("DISCORD_WEBHOOK", u); v != "" {
-			cfg.Notifications.Discord.WebhookURL = v
+		if envValue := getEnv("DISCORD_WEBHOOK", username); envValue != "" {
+			cfg.Notifications.Discord.WebhookURL = envValue
 		}
 	}
 
 	if cfg.Notifications.Webhook != nil {
-		if v := getEnv("WEBHOOK_URL", u); v != "" {
-			cfg.Notifications.Webhook.Endpoint = v
+		if envValue := getEnv("WEBHOOK_URL", username); envValue != "" {
+			cfg.Notifications.Webhook.Endpoint = envValue
 		}
 	}
 
 	if cfg.Notifications.Matrix != nil {
-		if v := getEnv("MATRIX_HOMESERVER", u); v != "" {
-			cfg.Notifications.Matrix.Homeserver = v
+		if envValue := getEnv("MATRIX_HOMESERVER", username); envValue != "" {
+			cfg.Notifications.Matrix.Homeserver = envValue
 		}
-		if v := getEnv("MATRIX_ROOM_ID", u); v != "" {
-			cfg.Notifications.Matrix.RoomID = v
+		if envValue := getEnv("MATRIX_ROOM_ID", username); envValue != "" {
+			cfg.Notifications.Matrix.RoomID = envValue
 		}
-		if v := getEnv("MATRIX_ACCESS_TOKEN", u); v != "" {
-			cfg.Notifications.Matrix.AccessToken = v
+		if envValue := getEnv("MATRIX_ACCESS_TOKEN", username); envValue != "" {
+			cfg.Notifications.Matrix.AccessToken = envValue
 		}
 	}
 
 	if cfg.Notifications.Pushover != nil {
-		if v := getEnv("PUSHOVER_TOKEN", u); v != "" {
-			cfg.Notifications.Pushover.APIToken = v
+		if envValue := getEnv("PUSHOVER_TOKEN", username); envValue != "" {
+			cfg.Notifications.Pushover.APIToken = envValue
 		}
-		if v := getEnv("PUSHOVER_USER_KEY", u); v != "" {
-			cfg.Notifications.Pushover.UserKey = v
+		if envValue := getEnv("PUSHOVER_USER_KEY", username); envValue != "" {
+			cfg.Notifications.Pushover.UserKey = envValue
 		}
 	}
 
 	if cfg.Notifications.Gotify != nil {
-		if v := getEnv("GOTIFY_URL", u); v != "" {
-			cfg.Notifications.Gotify.URL = v
+		if envValue := getEnv("GOTIFY_URL", username); envValue != "" {
+			cfg.Notifications.Gotify.URL = envValue
 		}
-		if v := getEnv("GOTIFY_TOKEN", u); v != "" {
-			cfg.Notifications.Gotify.Token = v
+		if envValue := getEnv("GOTIFY_TOKEN", username); envValue != "" {
+			cfg.Notifications.Gotify.Token = envValue
 		}
 	}
 }
@@ -162,8 +162,8 @@ func Validate(cfg *AccountConfig) error {
 		return fmt.Errorf("account %s: at least one of streamers, followers, or category_watcher must be configured", cfg.Username)
 	}
 
-	for i, s := range cfg.Streamers {
-		if s.Username == "" {
+	for i, streamerCfg := range cfg.Streamers {
+		if streamerCfg.Username == "" {
 			return fmt.Errorf("account %s: streamer at index %d has empty username", cfg.Username, i)
 		}
 	}

@@ -30,12 +30,12 @@ func Run[T any](ctx context.Context, items []T, workers int, fn func(context.Con
 		}
 
 		wg.Add(1)
-		go func(it T) {
+		go func(item T) {
 			defer wg.Done()
 			sem <- struct{}{}        // acquire
 			defer func() { <-sem }() // release
 
-			if err := fn(ctx, it); err != nil {
+			if err := fn(ctx, item); err != nil {
 				once.Do(func() { firstErr = err })
 			}
 		}(item)

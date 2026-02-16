@@ -9,8 +9,8 @@ import "sync"
 // persisted query doesn't return it).
 var gameSlugRegistry = struct {
 	sync.RWMutex
-	m map[string]string // gameID → slug
-}{m: make(map[string]string)}
+	slugsByGameID map[string]string // gameID → slug
+}{slugsByGameID: make(map[string]string)}
 
 // RegisterGameSlug records a game ID → slug mapping in the global registry.
 // Both gameID and slug must be non-empty; empty values are silently ignored.
@@ -19,7 +19,7 @@ func RegisterGameSlug(gameID, slug string) {
 		return
 	}
 	gameSlugRegistry.Lock()
-	gameSlugRegistry.m[gameID] = slug
+	gameSlugRegistry.slugsByGameID[gameID] = slug
 	gameSlugRegistry.Unlock()
 }
 
@@ -27,5 +27,5 @@ func RegisterGameSlug(gameID, slug string) {
 func LookupGameSlug(gameID string) string {
 	gameSlugRegistry.RLock()
 	defer gameSlugRegistry.RUnlock()
-	return gameSlugRegistry.m[gameID]
+	return gameSlugRegistry.slugsByGameID[gameID]
 }

@@ -65,11 +65,13 @@ streamers:
   - username: "rainbow6tw"
   - username: "rainbow6sea"
   - username: "Pengu"
+  - username: "itsSpoit"
   - username: "KingGeorge"
   - username: "AnneMunition"
-  - username: "zironicdk"
-  - username: "Interro"
   - username: "Beaulo"
+  - username: "MacieJay"
+  - username: "Interro"
+  - username: "zironicdk"
 
 # Blacklisted streamers
 blacklist: []
