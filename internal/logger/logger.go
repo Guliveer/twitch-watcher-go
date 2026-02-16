@@ -60,20 +60,6 @@ var coloredAttrKeys = map[string]string{
 	"target":   colorMagenta,
 }
 
-// hyperlinkAttrKeys maps slog attribute keys to URL format strings for OSC 8 terminal hyperlinks.
-// The placeholder %s is replaced with the attribute value.
-var hyperlinkAttrKeys = map[string]string{
-	"streamer": "https://twitch.tv/%s",
-	"channel":  "https://twitch.tv/%s",
-	"target":   "https://twitch.tv/%s",
-	"category": "https://twitch.tv/directory/category/%s",
-}
-
-// hyperlink wraps visible text with an OSC 8 terminal hyperlink escape sequence.
-func hyperlink(url, text string) string {
-	return "\033]8;;" + url + "\033\\" + text + "\033]8;;\033\\"
-}
-
 // NotifyFunc is a callback invoked when a log event matches notification criteria.
 // Implementations should be non-blocking.
 type NotifyFunc func(ctx context.Context, message string, event model.Event)
@@ -252,11 +238,7 @@ func (h *colorHandler) Handle(_ context.Context, record slog.Record) error {
 	for _, a := range h.attrs {
 		if h.colored {
 			if color, ok := coloredAttrKeys[a.Key]; ok {
-				val := fmt.Sprintf("%v", a.Value)
-				if urlFmt, ok := hyperlinkAttrKeys[a.Key]; ok {
-					val = hyperlink(fmt.Sprintf(urlFmt, val), val)
-				}
-				fmt.Fprintf(h.writer, " %s=%s%s%s", a.Key, color, val, colorReset)
+				fmt.Fprintf(h.writer, " %s=%s%v%s", a.Key, color, a.Value, colorReset)
 				continue
 			}
 		}
@@ -266,11 +248,7 @@ func (h *colorHandler) Handle(_ context.Context, record slog.Record) error {
 	record.Attrs(func(a slog.Attr) bool {
 		if h.colored {
 			if color, ok := coloredAttrKeys[a.Key]; ok {
-				val := fmt.Sprintf("%v", a.Value)
-				if urlFmt, ok := hyperlinkAttrKeys[a.Key]; ok {
-					val = hyperlink(fmt.Sprintf(urlFmt, val), val)
-				}
-				fmt.Fprintf(h.writer, " %s=%s%s%s", a.Key, color, val, colorReset)
+				fmt.Fprintf(h.writer, " %s=%s%v%s", a.Key, color, a.Value, colorReset)
 				return true
 			}
 		}

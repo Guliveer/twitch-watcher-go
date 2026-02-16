@@ -19,7 +19,6 @@ import (
 	"github.com/Guliveer/twitch-miner-go/internal/miner"
 	"github.com/Guliveer/twitch-miner-go/internal/model"
 	"github.com/Guliveer/twitch-miner-go/internal/server"
-	"golang.org/x/term"
 )
 
 const banner = `
@@ -32,7 +31,6 @@ func main() {
 	configDir := flag.String("config", "configs", "Path to the configuration directory")
 	port := flag.String("port", "8080", "Port for the health/analytics HTTP server")
 	logLevel := flag.String("log-level", "", "Log level: DEBUG, INFO, WARN, ERROR (overrides LOG_LEVEL env)")
-	noColor := flag.Bool("no-color", false, "Disable colored output (overrides TTY detection)")
 	flag.Parse()
 
 	level := slog.LevelInfo
@@ -47,11 +45,9 @@ func main() {
 		httpPort = envPort
 	}
 
-	colored := !*noColor && term.IsTerminal(int(os.Stdout.Fd())) && os.Getenv("NO_COLOR") == ""
-
 	rootLog, err := logger.Setup(logger.Config{
 		Level:   level,
-		Colored: colored,
+		Colored: true,
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to setup logger: %v\n", err)
