@@ -94,6 +94,10 @@ func main() {
 
 	miners := make([]*miner.Miner, 0, len(configs))
 	for _, cfg := range configs {
+		if !cfg.IsEnabled() {
+			rootLog.Info("Account is disabled, skipping", "account", cfg.Username)
+			continue
+		}
 		accountLog := rootLog.WithAccount(cfg.Username)
 		m := miner.NewMiner(cfg, accountLog)
 		miners = append(miners, m)
@@ -108,6 +112,17 @@ func main() {
 			all = append(all, m.Streamers()...)
 		}
 		return all
+	})
+
+	analyticsServer.SetAccountStatusFunc(func() []server.AccountStatus {
+		statuses := make([]server.AccountStatus, 0, len(miners))
+		for _, m := range miners {
+			statuses = append(statuses, server.AccountStatus{
+				Username: m.Username(),
+				Running:  m.IsRunning(),
+			})
+		}
+		return statuses
 	})
 
 	go func() {

@@ -3,6 +3,9 @@
 # The filename (without extension) becomes the Twitch username for this account.
 # For example: configs/my_twitch_name.yaml → username "my_twitch_name"
 
+# Set to false to disable this account without deleting the config file (default: true)
+enabled: true
+
 # Features
 features:
   claim_drops_startup: false

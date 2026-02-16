@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Guliveer/twitch-miner-go/internal/model"
 )
@@ -18,7 +19,21 @@ func (s *AnalyticsServer) handleDashboard(w http.ResponseWriter, r *http.Request
 }
 
 func (s *AnalyticsServer) handleHealth(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+	accounts := s.getAccountStatuses()
+	activeCount := 0
+	for _, a := range accounts {
+		if a.Running {
+			activeCount++
+		}
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":          "ok",
+		"timestamp":       time.Now().UTC().Format(time.RFC3339),
+		"active_accounts": activeCount,
+		"total_accounts":  len(accounts),
+		"accounts":        accounts,
+	})
 }
 
 func (s *AnalyticsServer) handleStreamers(w http.ResponseWriter, _ *http.Request) {

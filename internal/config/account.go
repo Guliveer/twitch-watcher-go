@@ -11,6 +11,8 @@ import (
 type AccountConfig struct {
 	Username string `yaml:"-"`
 
+	Enabled *bool `yaml:"enabled,omitempty"`
+
 	Auth AuthConfig `yaml:"-"`
 
 	Features FeaturesConfig `yaml:"features"`
@@ -238,6 +240,15 @@ func (bsc *BetSettingsConfig) ToBetSettings(defaults *model.BetSettings) *model.
 	}
 
 	return &bs
+}
+
+// IsEnabled returns whether this account is enabled.
+// If the Enabled field is not set (nil), it defaults to true.
+func (ac *AccountConfig) IsEnabled() bool {
+	if ac.Enabled == nil {
+		return true // default to true when not specified
+	}
+	return *ac.Enabled
 }
 
 // ParsedPriorities converts the string priority list to model.Priority values.

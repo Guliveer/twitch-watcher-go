@@ -1,3 +1,6 @@
+# Set to false to disable this account without deleting the config file (default: true)
+enabled: true
+
 # Features
 features:
   claim_drops_startup: true

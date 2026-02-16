@@ -19,15 +19,26 @@ import (
 // across all miners. Used to dynamically fetch streamer data.
 type StreamerFunc func() []*model.Streamer
 
+// AccountStatusFunc is a function that returns the running status of each
+// miner account. Used to dynamically fetch account health data.
+type AccountStatusFunc func() []AccountStatus
+
+// AccountStatus represents the running state of a single miner account.
+type AccountStatus struct {
+	Username string `json:"username"`
+	Running  bool   `json:"running"`
+}
+
 // AnalyticsServer serves the analytics dashboard and JSON API endpoints.
 type AnalyticsServer struct {
 	addr string
 	log  *logger.Logger
 	srv  *http.Server
 
-	mu           sync.RWMutex
-	streamers    []*model.Streamer
-	streamerFunc StreamerFunc
+	mu                sync.RWMutex
+	streamers         []*model.Streamer
+	streamerFunc      StreamerFunc
+	accountStatusFunc AccountStatusFunc
 }
 
 // NewAnalyticsServer creates a new AnalyticsServer bound to the given address.
@@ -75,6 +86,25 @@ func (s *AnalyticsServer) SetStreamerFunc(fn StreamerFunc) {
 	s.mu.Lock()
 	s.streamerFunc = fn
 	s.mu.Unlock()
+}
+
+// SetAccountStatusFunc sets a function that dynamically returns the running
+// status of all miner accounts. Thread-safe.
+func (s *AnalyticsServer) SetAccountStatusFunc(fn AccountStatusFunc) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.accountStatusFunc = fn
+}
+
+// getAccountStatuses returns the current account statuses. Thread-safe.
+func (s *AnalyticsServer) getAccountStatuses() []AccountStatus {
+	s.mu.RLock()
+	fn := s.accountStatusFunc
+	s.mu.RUnlock()
+	if fn != nil {
+		return fn()
+	}
+	return nil
 }
 
 // getStreamers returns the current streamer list. Thread-safe.

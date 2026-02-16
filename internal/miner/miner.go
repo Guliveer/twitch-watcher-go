@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"golang.org/x/sync/errgroup"
@@ -32,6 +33,8 @@ type Miner struct {
 	pubsub *pubsub.Pool
 	chat   *chat.Manager
 	notify *notify.Dispatcher
+
+	running atomic.Bool
 
 	catWatcher *watcher.CategoryWatcher
 
@@ -68,6 +71,16 @@ func (m *Miner) Streamers() []*model.Streamer {
 	return m.getStreamers()
 }
 
+// IsRunning reports whether the miner is currently running its main loop.
+func (m *Miner) IsRunning() bool {
+	return m.running.Load()
+}
+
+// Username returns the account username for this miner.
+func (m *Miner) Username() string {
+	return m.cfg.Username
+}
+
 // Run is the main entry point for the miner. It performs the full lifecycle
 // with optimized parallel startup:
 //  1. Login via Twitch client
@@ -81,6 +94,8 @@ func (m *Miner) Streamers() []*model.Streamer {
 //  9. Start background goroutines (minute watcher, campaign sync, context refresh)
 //  10. Monitor loop + graceful shutdown
 func (m *Miner) Run(ctx context.Context) error {
+	defer m.running.Store(false)
+
 	startTime := time.Now()
 	m.log.Info("🚀 Starting miner", "account", m.cfg.Username)
 
@@ -171,6 +186,8 @@ func (m *Miner) Run(ctx context.Context) error {
 	g.Go(func() error {
 		return m.runMonitorLoop(ctx)
 	})
+
+	m.running.Store(true)
 
 	m.log.Info("✅ Miner fully started",
 		"account", m.cfg.Username,
