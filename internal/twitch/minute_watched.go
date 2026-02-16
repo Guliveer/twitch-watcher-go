@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/Guliveer/twitch-miner-go/internal/constants"
@@ -16,28 +17,35 @@ import (
 )
 
 // SendMinuteWatchedEvents sends minute-watched events for the given streamers.
-// This is the core "watching" simulation that:
-// 1. Gets PlaybackAccessToken for the streamer
-// 2. Fetches HLS manifest URL
-// 3. Parses the manifest to get the lowest quality stream URL
-// 4. Makes a HEAD request to the stream URL
-// 5. Sends the spade_url tracking event
+// Fix #3: Each streamer is processed concurrently with a per-streamer timeout
+// to prevent slow HTTP requests for one streamer from blocking others or
+// causing the 20-second ticker to miss ticks.
 func (c *Client) SendMinuteWatchedEvents(ctx context.Context, streamers []*model.Streamer) error {
 	httpClient := c.GQL.HTTPClient()
 
+	var wg sync.WaitGroup
 	for _, streamer := range streamers {
 		if err := ctx.Err(); err != nil {
 			return err
 		}
 
-		if err := c.sendMinuteWatchedForStreamer(ctx, httpClient, streamer); err != nil {
-			c.Log.Debug("Failed to send minute watched",
-				"streamer", streamer.Username,
-				"error", err)
-			continue
-		}
+		wg.Add(1)
+		go func(s *model.Streamer) {
+			defer wg.Done()
+
+			// Per-streamer timeout to prevent one slow streamer from blocking the tick.
+			sCtx, cancel := context.WithTimeout(ctx, 15*time.Second)
+			defer cancel()
+
+			if err := c.sendMinuteWatchedForStreamer(sCtx, httpClient, s); err != nil {
+				c.Log.Debug("Failed to send minute watched",
+					"streamer", s.Username,
+					"error", err)
+			}
+		}(streamer)
 	}
 
+	wg.Wait()
 	return nil
 }
 
@@ -48,8 +56,22 @@ func (c *Client) sendMinuteWatchedForStreamer(ctx context.Context, httpClient *h
 	payload := streamer.Stream.Payload
 	streamer.Mu.RUnlock()
 
+	// Fix #1: If spade URL is empty (e.g. cache expired), attempt to refresh it
+	// before giving up. This prevents silent failures after the TTL expires.
 	if spadeURL == "" {
-		return fmt.Errorf("no spade URL for %s", username)
+		c.Log.Warn("Spade URL empty, attempting refresh", "streamer", username)
+		if err := c.RefreshSpadeURL(ctx, streamer); err != nil {
+			c.Log.Warn("Failed to refresh spade URL", "streamer", username, "error", err)
+			return fmt.Errorf("no spade URL for %s (refresh failed: %w)", username, err)
+		}
+		// Re-read after refresh.
+		streamer.Mu.RLock()
+		spadeURL = streamer.Stream.SpadeURL
+		payload = streamer.Stream.Payload
+		streamer.Mu.RUnlock()
+		if spadeURL == "" {
+			return fmt.Errorf("no spade URL for %s after refresh", username)
+		}
 	}
 	if payload == nil {
 		return fmt.Errorf("no payload for %s", username)

@@ -116,7 +116,9 @@ const (
 	// DefaultMinuteWatchedInterval is the interval between minute-watched event sends.
 	DefaultMinuteWatchedInterval = 20 * time.Second
 	// DefaultCampaignSyncInterval is the interval between drop campaign syncs.
-	DefaultCampaignSyncInterval = 30 * time.Minute
+	// Reduced from 30min to 10min so claimable drops are claimed faster and
+	// new campaigns are discovered sooner.
+	DefaultCampaignSyncInterval = 10 * time.Minute
 	// DefaultCategoryWatcherInterval is the default interval for category watcher polling.
 	DefaultCategoryWatcherInterval = 120 * time.Second
 	// DefaultStreamUpdateInterval is the interval for refreshing stream info.

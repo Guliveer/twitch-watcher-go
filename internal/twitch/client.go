@@ -26,7 +26,10 @@ var (
 )
 
 // spadeCacheTTL is how long a cached spade URL remains valid before re-fetching.
-const spadeCacheTTL = 30 * time.Minute
+// Increased to 6 hours: the spade URL rarely changes during a stream session.
+// The previous 30-minute TTL caused silent failures when the cache expired
+// but the streamer stayed online (updateSpadeURL was only called on offline→online).
+const spadeCacheTTL = 6 * time.Hour
 
 type spadeCache struct {
 	mu   sync.RWMutex
@@ -95,9 +98,17 @@ func (c *Client) CheckStreamerOnline(ctx context.Context, streamer *model.Stream
 		streamer.Mu.Unlock()
 		return nil
 	}
+	// Fix #2: Don't skip the check entirely when the streamer was recently marked
+	// online — only skip if the spade URL is already populated. Category-watched
+	// streamers are marked online before updateSpadeURL runs, so the early return
+	// previously prevented them from ever getting a spade URL.
 	if streamer.IsOnline && !streamer.OnlineAt.IsZero() && time.Since(streamer.OnlineAt) < 2*time.Minute {
-		streamer.Mu.Unlock()
-		return nil
+		hasSpadeURL := streamer.Stream != nil && streamer.Stream.SpadeURL != ""
+		if hasSpadeURL {
+			streamer.Mu.Unlock()
+			return nil
+		}
+		// Fall through to fetch spade URL even though recently marked online.
 	}
 	wasOnline := streamer.IsOnline
 	streamer.Mu.Unlock()
@@ -118,6 +129,16 @@ func (c *Client) CheckStreamerOnline(ctx context.Context, streamer *model.Stream
 		streamer.SetOnline()
 		streamer.Mu.Unlock()
 	} else {
+		// Streamer is already online — refresh spade URL if missing.
+		streamer.Mu.RLock()
+		needsSpade := streamer.Stream == nil || streamer.Stream.SpadeURL == ""
+		streamer.Mu.RUnlock()
+		if needsSpade {
+			if err := c.updateSpadeURL(ctx, streamer); err != nil {
+				c.Log.Debug("Failed to refresh spade URL", "streamer", streamer.Username, "error", err)
+			}
+		}
+
 		if err := c.updateStream(ctx, streamer); err != nil {
 			streamer.Mu.Lock()
 			streamer.SetOffline()
@@ -454,6 +475,13 @@ func (c *Client) CheckViewerIsMod(ctx context.Context, streamer *model.Streamer)
 	streamer.Mu.Lock()
 	streamer.ViewerIsMod = isMod
 	streamer.Mu.Unlock()
+}
+
+// RefreshSpadeURL re-fetches the spade URL for a streamer if it is missing or expired.
+// This is called from sendMinuteWatchedForStreamer when the spade URL is empty,
+// ensuring that minute-watched events don't silently fail after cache expiry.
+func (c *Client) RefreshSpadeURL(ctx context.Context, streamer *model.Streamer) error {
+	return c.updateSpadeURL(ctx, streamer)
 }
 
 // GQLClient returns the underlying GQL client for use by other packages

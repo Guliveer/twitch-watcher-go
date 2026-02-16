@@ -15,7 +15,7 @@ priority:
 # Category watcher - auto-discover streams by game
 category_watcher:
   enabled: true
-  poll_interval: 30s
+  poll_interval: 180s
   drops_only: true # Global default: only watch streams with Drops enabled
   categories:
     - slug: "tom-clancys-rainbow-six-siege"

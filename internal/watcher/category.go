@@ -250,8 +250,21 @@ func (cw *CategoryWatcher) evaluate(
 			Name: candidate.GameName,
 		}
 		stream.ViewersCount = candidate.ViewersCount
-		stream.MarkUpdated()
+		// Fix #5: Do NOT call stream.MarkUpdated() here. The previous call
+		// prevented UpdateRequired() from returning true for 120 seconds,
+		// which meant CampaignIDs stayed empty and DropsCondition() returned
+		// false. By leaving lastUpdate at zero, the next CheckStreamerOnline
+		// cycle will call updateStream() immediately and populate CampaignIDs.
 		streamer.Stream = stream
+
+		// Fix #5 (cont): Pre-populate CampaignIDs so DropsCondition() works
+		// immediately without waiting for the next updateStream() cycle.
+		if cat.GameID != "" {
+			campaignIDs, err := cw.gqlClient.GetAvailableCampaigns(ctx, candidate.ChannelID)
+			if err == nil && len(campaignIDs) > 0 {
+				stream.CampaignIDs = campaignIDs
+			}
+		}
 
 		defaults := *cw.streamerDefaults
 		if defaults.Bet != nil {
