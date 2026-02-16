@@ -10,7 +10,10 @@ var staticEmbed embed.FS
 
 var staticFS fs.FS
 
-var dashboardHTML []byte
+var (
+	dashboardHTML []byte
+	logsHTML      []byte
+)
 
 func init() {
 	var err error
@@ -22,5 +25,10 @@ func init() {
 	dashboardHTML, err = staticEmbed.ReadFile("static/index.html")
 	if err != nil {
 		panic("server: failed to read embedded dashboard HTML: " + err.Error())
+	}
+
+	logsHTML, err = staticEmbed.ReadFile("static/logs.html")
+	if err != nil {
+		panic("server: failed to read embedded logs HTML: " + err.Error())
 	}
 }

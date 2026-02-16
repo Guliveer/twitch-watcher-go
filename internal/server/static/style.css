@@ -253,6 +253,25 @@ h2 {
   background: #1f1f23;
 }
 
+/* Navigation link */
+.nav-link {
+  color: #bf94ff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #9147ff;
+  border-radius: 4px;
+  transition:
+    background 0.2s,
+    color 0.2s;
+  margin-left: auto;
+}
+
+.nav-link:hover {
+  background: #9147ff;
+  color: #fff;
+}
+
 footer {
   text-align: center;
   padding: 2rem;

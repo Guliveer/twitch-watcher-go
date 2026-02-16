@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Event Logs — Twitch Miner</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <style>
+            /* Header layout */
+            .header-left {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+            }
+
+            .back-link {
+                color: #bf94ff;
+                text-decoration: none;
+                font-size: 0.9rem;
+                padding: 0.4rem 0.8rem;
+                border: 1px solid #9147ff;
+                border-radius: 4px;
+                transition: background 0.2s, color 0.2s;
+                white-space: nowrap;
+            }
+
+            .back-link:hover {
+                background: #9147ff;
+                color: #fff;
+            }
+
+            /* Category summary grid */
+            #category-summary {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+                gap: 1rem;
+                max-width: 1200px;
+                margin: 1.5rem auto;
+                padding: 0 1rem;
+            }
+
+            .category-card {
+                background: #18181b;
+                border-radius: 8px;
+                padding: 1rem;
+                border-left: 4px solid #53535f;
+                transition: border-color 0.2s;
+            }
+
+            .category-header {
+                display: flex;
+                align-items: center;
+                gap: 0.5rem;
+                margin-bottom: 0.5rem;
+            }
+
+            .category-emoji {
+                font-size: 1.2rem;
+            }
+
+            .category-label {
+                font-weight: 600;
+                font-size: 0.95rem;
+                color: #efeff1;
+            }
+
+            .category-stats {
+                display: flex;
+                flex-direction: column;
+                gap: 0.2rem;
+            }
+
+            .category-count {
+                font-size: 0.8rem;
+                color: #adadb8;
+            }
+
+            .category-points {
+                font-size: 0.9rem;
+                color: #ffca28;
+                font-weight: 600;
+            }
+
+            /* Events table */
+            #events-table {
+                width: 100%;
+                border-collapse: collapse;
+                background: #18181b;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+
+            #events-table th,
+            #events-table td {
+                padding: 0.6rem 1rem;
+                text-align: left;
+            }
+
+            #events-table th {
+                background: #26262c;
+                color: #bf94ff;
+                font-size: 0.85rem;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+                cursor: pointer;
+                user-select: none;
+                position: relative;
+                transition: background 0.2s;
+            }
+
+            #events-table th:hover {
+                background: #2f2f38;
+            }
+
+            #events-table th::after {
+                content: "";
+                display: inline-block;
+                margin-left: 0.4rem;
+                opacity: 0.3;
+            }
+
+            #events-table th.sort-asc::after {
+                content: "▲";
+                opacity: 1;
+            }
+
+            #events-table th.sort-desc::after {
+                content: "▼";
+                opacity: 1;
+            }
+
+            #events-table td {
+                border-top: 1px solid #26262c;
+                font-size: 0.9rem;
+            }
+
+            #events-table tr:hover td {
+                background: #1f1f23;
+            }
+
+            .event-emoji {
+                margin-right: 0.4rem;
+                font-size: 1rem;
+            }
+
+            td.points {
+                color: #ffca28;
+                font-weight: 600;
+            }
+
+            /* Responsive */
+            @media (max-width: 640px) {
+                #category-summary {
+                    grid-template-columns: repeat(2, 1fr);
+                }
+
+                .header-left {
+                    flex-wrap: wrap;
+                }
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <div class="header-left">
+                <a href="/" class="back-link">← Dashboard</a>
+                <h1>📋 Event Logs</h1>
+            </div>
+        </header>
+
+        <section id="filter-bar">
+            <div class="filter-group">
+                <label for="filter-account">Account</label>
+                <select id="filter-account">
+                    <option value="">All Accounts</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-channel">Channel</label>
+                <input type="text" id="filter-channel" placeholder="Search channel…">
+            </div>
+            <div class="filter-group">
+                <label for="filter-category">Category</label>
+                <select id="filter-category">
+                    <option value="">All Categories</option>
+                    <option value="drops">🎯 Drops</option>
+                    <option value="points">💰 Points</option>
+                    <option value="bets">🎰 Bets</option>
+                    <option value="raids">⚔️ Raids</option>
+                    <option value="streams">🟢 Streams</option>
+                    <option value="other">🎉 Other</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-event">Event Type</label>
+                <select id="filter-event">
+                    <option value="">All Events</option>
+                </select>
+            </div>
+            <div class="filter-group filter-actions">
+                <button id="clear-filters" type="button">Clear Filters</button>
+            </div>
+        </section>
+
+        <section id="category-summary">
+            <!-- Category summary cards rendered by JS -->
+        </section>
+
+        <main>
+            <section id="events-section">
+                <h2>Event Details</h2>
+                <table id="events-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="event">Event</th>
+                            <th data-sort="streamer">Streamer</th>
+                            <th data-sort="account">Account</th>
+                            <th data-sort="count">Count</th>
+                            <th data-sort="amount">Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="events-body"></tbody>
+                </table>
+            </section>
+        </main>
+
+        <footer>
+            <p>Auto-refreshes every 30 seconds</p>
+        </footer>
+
+        <script src="/static/logs.js"></script>
+    </body>
+
+</html>

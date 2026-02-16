@@ -40,13 +40,11 @@
     var channel = document.getElementById("filter-channel").value.trim();
     var category = document.getElementById("filter-category").value;
     var online = document.getElementById("filter-online").value;
-    var event = document.getElementById("filter-event").value;
 
     if (account) params.set("account", account);
     if (channel) params.set("channel", channel);
     if (category) params.set("category", category);
     if (online) params.set("online", online);
-    if (event) params.set("event", event);
 
     return params.toString();
   }
@@ -73,7 +71,6 @@
       var data = await fetchJSON("/api/filters");
       populateSelect("filter-account", data.accounts || [], "All Accounts");
       populateSelect("filter-category", data.categories || [], "All Categories");
-      populateSelect("filter-event", data.events || [], "All Events");
     } catch (err) {
       console.error("Failed to load filters:", err);
     }
@@ -83,7 +80,6 @@
     document.getElementById("filter-account").value = "";
     document.getElementById("filter-channel").value = "";
     document.getElementById("filter-category").value = "";
-    document.getElementById("filter-event").value = "";
     document.getElementById("filter-online").value = "";
     refresh();
   }
@@ -160,7 +156,7 @@
 
   // ── Event listeners ───────────────────────────────────────────────────
   function initFilterListeners() {
-    var selects = ["filter-account", "filter-category", "filter-event", "filter-online"];
+    var selects = ["filter-account", "filter-category", "filter-online"];
     selects.forEach(function (id) {
       document.getElementById(id).addEventListener("change", function () {
         refresh();

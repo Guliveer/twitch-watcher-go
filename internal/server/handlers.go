@@ -19,6 +19,11 @@ func (s *AnalyticsServer) handleDashboard(w http.ResponseWriter, r *http.Request
 	w.Write(dashboardHTML) //nolint:errcheck
 }
 
+func (s *AnalyticsServer) handleLogs(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Write(logsHTML) //nolint:errcheck
+}
+
 func (s *AnalyticsServer) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":    "ok",
@@ -228,6 +233,109 @@ func (s *AnalyticsServer) handleFilters(w http.ResponseWriter, _ *http.Request) 
 		"channels":   sortedKeys(channelSet),
 		"categories": sortedKeys(categorySet),
 		"events":     sortedKeys(eventSet),
+	})
+}
+
+// Event category groups for filtering on the logs page.
+var eventCategories = map[string][]string{
+	"drops":   {"DROP_CLAIM", "DROP_STATUS"},
+	"points":  {"GAIN_FOR_WATCH", "GAIN_FOR_WATCH_STREAK", "GAIN_FOR_CLAIM", "GAIN_FOR_RAID", "BONUS_CLAIM"},
+	"bets":    {"BET_START", "BET_WIN", "BET_LOSE", "BET_REFUND", "BET_FILTERS", "BET_GENERAL", "BET_FAILED"},
+	"raids":   {"JOIN_RAID"},
+	"streams": {"STREAMER_ONLINE", "STREAMER_OFFLINE"},
+	"other":   {"MOMENT_CLAIM", "CHAT_MENTION"},
+}
+
+type eventLogEntry struct {
+	Account  string `json:"account"`
+	Streamer string `json:"streamer"`
+	Event    string `json:"event"`
+	Count    int    `json:"count"`
+	Amount   int    `json:"amount"`
+}
+
+func (s *AnalyticsServer) handleEventLogs(w http.ResponseWriter, r *http.Request) {
+	accountFilter := strings.ToLower(r.URL.Query().Get("account"))
+	channelFilter := strings.ToLower(r.URL.Query().Get("channel"))
+	categoryFilter := strings.ToLower(r.URL.Query().Get("category"))
+	eventFilter := strings.ToUpper(r.URL.Query().Get("event"))
+
+	// Build allowed events set from category filter.
+	var allowedEvents map[string]bool
+	if categoryFilter != "" {
+		if events, ok := eventCategories[categoryFilter]; ok {
+			allowedEvents = make(map[string]bool, len(events))
+			for _, e := range events {
+				allowedEvents[e] = true
+			}
+		}
+	}
+
+	var entries []eventLogEntry
+	for _, st := range s.getStreamers() {
+		if accountFilter != "" && strings.ToLower(st.AccountUsername) != accountFilter {
+			continue
+		}
+		if channelFilter != "" && !strings.Contains(strings.ToLower(st.Username), channelFilter) {
+			continue
+		}
+
+		st.Mu.RLock()
+		for event, hist := range st.History {
+			// Apply event filter.
+			if eventFilter != "" && event != eventFilter {
+				continue
+			}
+			// Apply category filter.
+			if allowedEvents != nil && !allowedEvents[event] {
+				continue
+			}
+			entries = append(entries, eventLogEntry{
+				Account:  st.AccountUsername,
+				Streamer: st.DisplayName,
+				Event:    event,
+				Count:    hist.Counter,
+				Amount:   hist.Amount,
+			})
+		}
+		st.Mu.RUnlock()
+	}
+
+	if entries == nil {
+		entries = []eventLogEntry{}
+	}
+
+	writeJSON(w, http.StatusOK, entries)
+}
+
+func (s *AnalyticsServer) handleEventFilters(w http.ResponseWriter, _ *http.Request) {
+	accountSet := make(map[string]bool)
+	channelSet := make(map[string]bool)
+	eventSet := make(map[string]bool)
+
+	for _, st := range s.getStreamers() {
+		if st.AccountUsername != "" {
+			accountSet[st.AccountUsername] = true
+		}
+		channelSet[st.DisplayName] = true
+		st.Mu.RLock()
+		for event := range st.History {
+			eventSet[event] = true
+		}
+		st.Mu.RUnlock()
+	}
+
+	categories := make([]string, 0, len(eventCategories))
+	for cat := range eventCategories {
+		categories = append(categories, cat)
+	}
+	sort.Strings(categories)
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"accounts":   sortedKeys(accountSet),
+		"channels":   sortedKeys(channelSet),
+		"events":     sortedKeys(eventSet),
+		"categories": categories,
 	})
 }
 

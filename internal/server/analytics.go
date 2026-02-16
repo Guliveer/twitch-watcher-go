@@ -39,11 +39,14 @@ func NewAnalyticsServer(addr string, log *logger.Logger) *AnalyticsServer {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /", s.handleDashboard)
+	mux.HandleFunc("GET /logs", s.handleLogs)
 	mux.HandleFunc("GET /health", s.handleHealth)
 	mux.HandleFunc("GET /api/streamers", s.handleStreamers)
 	mux.HandleFunc("GET /api/streamer/{name}", s.handleStreamer)
 	mux.HandleFunc("GET /api/stats", s.handleStats)
 	mux.HandleFunc("GET /api/filters", s.handleFilters)
+	mux.HandleFunc("GET /api/events", s.handleEventLogs)
+	mux.HandleFunc("GET /api/event-filters", s.handleEventFilters)
 
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(staticFS)))
 
@@ -96,7 +99,7 @@ func (s *AnalyticsServer) getStreamers() []*model.Streamer {
 // Run starts the HTTP server and blocks until the context is cancelled.
 // It performs graceful shutdown when the context is done.
 func (s *AnalyticsServer) Run(ctx context.Context) error {
-	s.log.Info("Analytics server starting", "addr", s.addr)
+	s.log.Info("Analytics server started", "address", "http://"+s.addr)
 
 	errCh := make(chan error, 1)
 	go func() {

@@ -1,82 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitch Miner — Dashboard</title>
-    <link rel="stylesheet" href="/static/style.css">
-</head>
-<body>
-    <header>
-        <h1>🎮 Twitch Channel Points Miner</h1>
-        <div id="stats-bar">
-            <span id="total-streamers">Streamers: —</span>
-            <span id="online-streamers">Online: —</span>
-            <span id="total-points">Total Points: —</span>
-        </div>
-    </header>
 
-    <section id="filter-bar">
-        <div class="filter-group">
-            <label for="filter-account">Account</label>
-            <select id="filter-account">
-                <option value="">All Accounts</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="filter-channel">Channel</label>
-            <input type="text" id="filter-channel" placeholder="Search channel…">
-        </div>
-        <div class="filter-group">
-            <label for="filter-category">Category</label>
-            <select id="filter-category">
-                <option value="">All Categories</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="filter-event">Event Type</label>
-            <select id="filter-event">
-                <option value="">All Events</option>
-            </select>
-        </div>
-        <div class="filter-group">
-            <label for="filter-online">Status</label>
-            <select id="filter-online">
-                <option value="">All</option>
-                <option value="true">Online</option>
-                <option value="false">Offline</option>
-            </select>
-        </div>
-        <div class="filter-group filter-actions">
-            <button id="clear-filters" type="button">Clear Filters</button>
-        </div>
-    </section>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Twitch Miner — Dashboard</title>
+        <link rel="stylesheet" href="/static/style.css">
+    </head>
 
-    <main>
-        <section id="streamers-section">
-            <h2>Streamers</h2>
-            <div id="streamers-grid"></div>
+    <body>
+        <header>
+            <h1>🎮 Twitch Channel Points Miner</h1>
+            <a href="/logs" class="nav-link">📋 Event Logs</a>
+            <div id="stats-bar">
+                <span id="total-streamers">Streamers: —</span>
+                <span id="online-streamers">Online: —</span>
+                <span id="total-points">Total Points: —</span>
+            </div>
+        </header>
+
+        <section id="filter-bar">
+            <div class="filter-group">
+                <label for="filter-account">Account</label>
+                <select id="filter-account">
+                    <option value="">All Accounts</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-channel">Channel</label>
+                <input type="text" id="filter-channel" placeholder="Search channel…">
+            </div>
+            <div class="filter-group">
+                <label for="filter-category">Category</label>
+                <select id="filter-category">
+                    <option value="">All Categories</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label for="filter-online">Status</label>
+                <select id="filter-online">
+                    <option value="">All</option>
+                    <option value="true">Online</option>
+                    <option value="false">Offline</option>
+                </select>
+            </div>
+            <div class="filter-group filter-actions">
+                <button id="clear-filters" type="button">Clear Filters</button>
+            </div>
         </section>
 
-        <section id="history-section">
-            <h2>Earnings History</h2>
-            <table id="history-table">
-                <thead>
-                    <tr>
-                        <th>Reason</th>
-                        <th>Count</th>
-                        <th>Points</th>
-                    </tr>
-                </thead>
-                <tbody id="history-body"></tbody>
-            </table>
-        </section>
-    </main>
+        <main>
+            <section id="streamers-section">
+                <h2>Streamers</h2>
+                <div id="streamers-grid"></div>
+            </section>
 
-    <footer>
-        <p>Auto-refreshes every 30 seconds</p>
-    </footer>
+            <section id="history-section">
+                <h2>Earnings History</h2>
+                <table id="history-table">
+                    <thead>
+                        <tr>
+                            <th>Reason</th>
+                            <th>Count</th>
+                            <th>Points</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-body"></tbody>
+                </table>
+            </section>
+        </main>
 
-    <script src="/static/app.js"></script>
-</body>
+        <footer>
+            <p>Auto-refreshes every 30 seconds</p>
+        </footer>
+
+        <script src="/static/app.js"></script>
+    </body>
+
 </html>

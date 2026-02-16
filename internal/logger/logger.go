@@ -45,6 +45,7 @@ const (
 	colorGreen         = "\033[32m"
 	colorYellow        = "\033[33m"
 	colorBlue          = "\033[34m"
+	colorLightBlue     = "\033[94m"
 	colorMagenta       = "\033[35m"
 	colorCyan          = "\033[36m"
 	colorWhite         = "\033[37m"
@@ -56,7 +57,7 @@ const (
 var coloredAttrKeys = map[string]string{
 	"streamer": colorMagenta,
 	"channel":  colorMagenta,
-	"category": colorBlue,
+	"category": colorLightBlue,
 	"target":   colorMagenta,
 }
 
