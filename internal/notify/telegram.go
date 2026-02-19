@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/Guliveer/twitch-miner-go/internal/model"
@@ -20,10 +21,15 @@ type Telegram struct {
 }
 
 // Send posts a message to the configured Telegram chat.
-func (t *Telegram) Send(ctx context.Context, _ model.Event, _, message string) error {
+func (t *Telegram) Send(ctx context.Context, _ model.Event, title, message string) error {
+	text := message
+	if title != "" {
+		text = fmt.Sprintf("<b>%s</b>\n%s", title, message)
+	}
+
 	payload := map[string]any{
 		"chat_id":                  t.chatID,
-		"text":                     message,
+		"text":                     text,
 		"parse_mode":               "HTML",
 		"disable_web_page_preview": true,
 		"disable_notification":     t.disableNotification,
@@ -48,7 +54,8 @@ func (t *Telegram) Send(ctx context.Context, _ model.Event, _, message string) e
 	defer resp.Body.Close()
 
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("telegram: unexpected status %d", resp.StatusCode)
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("telegram: unexpected status %d: %s", resp.StatusCode, string(body))
 	}
 
 	return nil

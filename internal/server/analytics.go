@@ -19,15 +19,20 @@ import (
 // across all miners. Used to dynamically fetch streamer data.
 type StreamerFunc func() []*model.Streamer
 
+// NotifyTestFunc is a function that sends a test notification to all configured
+// notifiers across all miners. Returns any errors encountered.
+type NotifyTestFunc func(ctx context.Context) []error
+
 // AnalyticsServer serves the analytics dashboard and JSON API endpoints.
 type AnalyticsServer struct {
 	addr string
 	log  *logger.Logger
 	srv  *http.Server
 
-	mu           sync.RWMutex
-	streamers    []*model.Streamer
-	streamerFunc StreamerFunc
+	mu             sync.RWMutex
+	streamers      []*model.Streamer
+	streamerFunc   StreamerFunc
+	notifyTestFunc NotifyTestFunc
 }
 
 // NewAnalyticsServer creates a new AnalyticsServer bound to the given address.
@@ -48,6 +53,7 @@ func NewAnalyticsServer(addr string, log *logger.Logger) *AnalyticsServer {
 	mux.HandleFunc("GET /api/events", s.handleEventLogs)
 	mux.HandleFunc("GET /api/event-filters", s.handleEventFilters)
 
+	mux.HandleFunc("POST /api/test-notification", s.handleTestNotification)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(staticFS)))
 
 	s.srv = &http.Server{
@@ -69,6 +75,14 @@ func NewAnalyticsServer(addr string, log *logger.Logger) *AnalyticsServer {
 func (s *AnalyticsServer) SetStreamers(streamers []*model.Streamer) {
 	s.mu.Lock()
 	s.streamers = streamers
+	s.mu.Unlock()
+}
+
+// SetNotifyTestFunc sets a function that sends test notifications to all
+// configured notifiers. Thread-safe.
+func (s *AnalyticsServer) SetNotifyTestFunc(fn NotifyTestFunc) {
+	s.mu.Lock()
+	s.notifyTestFunc = fn
 	s.mu.Unlock()
 }
 

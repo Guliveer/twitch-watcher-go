@@ -403,6 +403,35 @@ type errorResponse struct {
 	Error string `json:"error"`
 }
 
+func (s *AnalyticsServer) handleTestNotification(w http.ResponseWriter, r *http.Request) {
+	s.mu.RLock()
+	fn := s.notifyTestFunc
+	s.mu.RUnlock()
+
+	if fn == nil {
+		writeJSON(w, http.StatusServiceUnavailable, errorResponse{Error: "no notification dispatchers configured"})
+		return
+	}
+
+	errs := fn(r.Context())
+	if len(errs) > 0 {
+		errMsgs := make([]string, len(errs))
+		for i, err := range errs {
+			errMsgs[i] = err.Error()
+		}
+		writeJSON(w, http.StatusOK, map[string]any{
+			"status": "partial",
+			"errors": errMsgs,
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"status":  "ok",
+		"message": "Test notification sent to all enabled notifiers",
+	})
+}
+
 func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(status)

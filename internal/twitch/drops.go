@@ -131,9 +131,8 @@ func (c *Client) syncCampaignsWithInventory(ctx context.Context, campaigns []*mo
 								timeDrop.Self.IsClaimed,
 							)
 							if drop.IsClaimable {
-								c.Log.Info("Claiming drop",
-									"drop", drop.String(),
-									"event", string(model.EventDropClaim))
+								c.Log.Event(ctx, model.EventDropClaim, "Claiming drop",
+									"drop", drop.String())
 								claimed, err := c.GQL.ClaimDropRewards(ctx, drop.DropInstanceID)
 								if err != nil {
 									c.Log.Warn("Failed to claim drop",
@@ -205,9 +204,8 @@ func (c *Client) ClaimAllDropsFromInventory(ctx context.Context) error {
 				continue
 			}
 			if !drop.Self.IsClaimed && drop.Self.DropInstanceID != "" {
-				c.Log.Info("Claiming drop from inventory",
-					"drop", drop.Name,
-					"event", string(model.EventDropClaim))
+					c.Log.Event(ctx, model.EventDropClaim, "Claiming drop from inventory",
+						"drop", drop.Name)
 				_, err := c.GQL.ClaimDropRewards(ctx, drop.Self.DropInstanceID)
 				if err != nil {
 					c.Log.Warn("Failed to claim drop from inventory",

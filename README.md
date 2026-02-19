@@ -130,6 +130,94 @@ Secrets and auth tokens are injected via environment variables. Per-account vari
 
 For example, for user `guliveer_` the Telegram token variable is `TELEGRAM_TOKEN_GULIVEER_` and the auth token variable is `TWITCH_AUTH_TOKEN_GULIVEER_`.
 
+## Notifications
+
+The miner supports multiple notification providers. Configure them in your account YAML file under the `notifications` key. Sensitive credentials (tokens, API keys) are injected via environment variables — see [Environment Variables](#environment-variables) above.
+
+### Supported Providers
+
+| Provider | Config key | Required env vars                                                                             |
+| -------- | ---------- | --------------------------------------------------------------------------------------------- |
+| Telegram | `telegram` | `TELEGRAM_TOKEN_<USERNAME>`, `TELEGRAM_CHAT_ID_<USERNAME>`                                    |
+| Discord  | `discord`  | `DISCORD_WEBHOOK_<USERNAME>`                                                                  |
+| Gotify   | `gotify`   | `GOTIFY_URL_<USERNAME>`, `GOTIFY_TOKEN_<USERNAME>`                                            |
+| Pushover | `pushover` | `PUSHOVER_TOKEN_<USERNAME>`, `PUSHOVER_USER_KEY_<USERNAME>`                                   |
+| Matrix   | `matrix`   | `MATRIX_HOMESERVER_<USERNAME>`, `MATRIX_ROOM_ID_<USERNAME>`, `MATRIX_ACCESS_TOKEN_<USERNAME>` |
+| Webhook  | `webhook`  | `WEBHOOK_URL_<USERNAME>`                                                                      |
+
+> Replace `<USERNAME>` with the Twitch username in **UPPERCASE**. For example, user `guliveer_` → `TELEGRAM_TOKEN_GULIVEER_`.
+
+### Example: Telegram
+
+```yaml
+notifications:
+  telegram:
+    enabled: true
+    token: "YOUR_BOT_TOKEN"
+    chat_id: "YOUR_CHAT_ID"
+    events:
+      - "DROP_CLAIM"
+      - "DROP_STATUS"
+      - "STREAMER_ONLINE"
+      - "STREAMER_OFFLINE"
+      - "BET_WIN"
+      - "BET_LOSE"
+    disable_notification: false
+```
+
+> **Tip:** The `token` and `chat_id` fields in YAML are optional — if omitted, the miner reads them from `TELEGRAM_TOKEN_<USERNAME>` and `TELEGRAM_CHAT_ID_<USERNAME>` environment variables instead. This is the recommended approach for production/headless deployments.
+
+### Event Filtering
+
+The `events` list controls which events trigger a notification. If the list is **empty or omitted**, **all** events will be notified.
+
+**Available events:**
+
+| Event              | Description                         |
+| ------------------ | ----------------------------------- |
+| `DROP_CLAIM`       | A drop was claimed                  |
+| `DROP_STATUS`      | Drop progress update                |
+| `STREAMER_ONLINE`  | A streamer went live                |
+| `STREAMER_OFFLINE` | A streamer went offline             |
+| `BONUS_CLAIM`      | Channel points bonus claimed        |
+| `JOIN_RAID`        | Joined a raid                       |
+| `MOMENT_CLAIM`     | Community moment claimed            |
+| `BET_START`        | A prediction started                |
+| `BET_WIN`          | A prediction was won                |
+| `BET_LOSE`         | A prediction was lost               |
+| `BET_REFUND`       | A prediction was refunded           |
+| `BET_FILTERS`      | Prediction skipped due to filters   |
+| `CHAT_MENTION`     | Your username was mentioned in chat |
+| `TEST`             | Test notification (see below)       |
+
+### Testing Notifications
+
+The miner exposes a `POST /api/test-notification` endpoint on the analytics server to verify your notification setup. It sends a test message to **all** enabled notification providers, **bypassing event filters**.
+
+```bash
+curl -X POST http://localhost:8080/api/test-notification
+```
+
+A successful response looks like:
+
+```json
+{
+  "status": "ok",
+  "message": "Test notification sent to all enabled notifiers"
+}
+```
+
+If some providers fail, you'll get a partial status with error details:
+
+```json
+{
+  "status": "partial",
+  "errors": ["telegram: 401 Unauthorized"]
+}
+```
+
+> **Note:** Replace `8080` with your configured port (the `-port` flag or `PORT` env var). This endpoint is useful for verifying that tokens, chat IDs, and webhook URLs are correctly configured before relying on notifications in production.
+
 ## Authentication
 
 Authentication is automatic — on first run the miner walks through a priority chain until one method succeeds:

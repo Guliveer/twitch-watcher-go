@@ -123,6 +123,33 @@ func main() {
 		return all
 	})
 
+	analyticsServer.SetNotifyTestFunc(func(ctx context.Context) []error {
+		var allErrs []error
+		for _, minerInstance := range miners {
+			d := minerInstance.NotifyDispatcher()
+			if d == nil || !d.HasNotifiers() {
+				continue
+			}
+			errs := d.TestAll(ctx, "Twitch Miner", "🔔 Test notification — if you see this, notifications are working!")
+			allErrs = append(allErrs, errs...)
+		}
+		if len(miners) > 0 && allErrs == nil {
+			// Check if any miner had notifiers at all.
+			hasAny := false
+			for _, minerInstance := range miners {
+				d := minerInstance.NotifyDispatcher()
+				if d != nil && d.HasNotifiers() {
+					hasAny = true
+					break
+				}
+			}
+			if !hasAny {
+				return []error{fmt.Errorf("no notification providers configured in any miner")}
+			}
+		}
+		return allErrs
+	})
+
 	go func() {
 		if err := analyticsServer.Run(ctx); err != nil && ctx.Err() == nil {
 			rootLog.Error("Analytics server failed", "error", err)

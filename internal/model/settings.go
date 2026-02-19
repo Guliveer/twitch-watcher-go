@@ -24,6 +24,7 @@ const (
 	EventDropClaim          Event = "DROP_CLAIM"
 	EventDropStatus         Event = "DROP_STATUS"
 	EventChatMention        Event = "CHAT_MENTION"
+	EventTest               Event = "TEST"
 )
 
 // AllEvents returns a slice of all defined events.
@@ -48,6 +49,7 @@ func AllEvents() []Event {
 		EventDropClaim,
 		EventDropStatus,
 		EventChatMention,
+		EventTest,
 	}
 }
 

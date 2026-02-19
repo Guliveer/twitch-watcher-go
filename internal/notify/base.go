@@ -17,6 +17,10 @@ func (b *baseNotifier) Name() string { return b.name }
 func (b *baseNotifier) IsEnabled() bool { return b.enabled }
 
 // ShouldNotify reports whether this notifier should fire for the given event.
+// If the events list is empty, all events are allowed (treat as "subscribe to all").
 func (b *baseNotifier) ShouldNotify(event model.Event) bool {
+	if len(b.events) == 0 {
+		return true
+	}
 	return containsEvent(b.events, event)
 }

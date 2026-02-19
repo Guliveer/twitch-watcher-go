@@ -4,6 +4,7 @@ package notify
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -132,6 +133,22 @@ func (d *Dispatcher) NotifyFunc() logger.NotifyFunc {
 	return func(ctx context.Context, message string, event model.Event) {
 		d.Dispatch(ctx, event, "Twitch Miner", message)
 	}
+}
+
+// TestAll sends a test notification to all enabled notifiers, bypassing event filters.
+func (d *Dispatcher) TestAll(ctx context.Context, title, message string) []error {
+	var errs []error
+	for _, n := range d.notifiers {
+		if !n.IsEnabled() {
+			continue
+		}
+		sendCtx, cancel := context.WithTimeout(ctx, defaultHTTPTimeout)
+		if err := n.Send(sendCtx, model.EventTest, title, message); err != nil {
+			errs = append(errs, fmt.Errorf("%s: %w", n.Name(), err))
+		}
+		cancel()
+	}
+	return errs
 }
 
 // HasNotifiers reports whether any notifiers are configured.

@@ -71,6 +71,12 @@ func (m *Miner) Streamers() []*model.Streamer {
 	return m.getStreamers()
 }
 
+// NotifyDispatcher returns the notification dispatcher for this miner.
+// May return nil if the miner hasn't been started yet.
+func (m *Miner) NotifyDispatcher() *notify.Dispatcher {
+	return m.notify
+}
+
 // IsRunning reports whether the miner is currently running its main loop.
 func (m *Miner) IsRunning() bool {
 	return m.running.Load()

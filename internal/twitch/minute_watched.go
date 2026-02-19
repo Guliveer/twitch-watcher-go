@@ -188,14 +188,14 @@ func (c *Client) sendMinuteWatchedForStreamer(ctx context.Context, httpClient *h
 			"streamer", username,
 			"status", spadeResp.StatusCode)
 
-		c.logDropProgress(streamer)
+		c.logDropProgress(ctx, streamer)
 		return nil
 	}
 
 	return fmt.Errorf("spade event for %s returned status %d", username, spadeResp.StatusCode)
 }
 
-func (c *Client) logDropProgress(streamer *model.Streamer) {
+func (c *Client) logDropProgress(ctx context.Context, streamer *model.Streamer) {
 	streamer.Mu.RLock()
 	defer streamer.Mu.RUnlock()
 
@@ -205,13 +205,12 @@ func (c *Client) logDropProgress(streamer *model.Streamer) {
 				continue
 			}
 			if drop.IsPrintable {
-				c.Log.Info("Drop progress",
+				c.Log.Event(ctx, model.EventDropStatus, "Drop progress",
 					"streamer", streamer.Username,
 					"stream", streamer.Stream.String(),
 					"campaign", campaign.String(),
 					"drop", drop.String(),
-					"progress", drop.ProgressBar(),
-					"event", string(model.EventDropStatus))
+					"progress", drop.ProgressBar())
 			}
 		}
 	}
