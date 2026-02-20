@@ -129,9 +129,15 @@ func (d *Dispatcher) Dispatch(ctx context.Context, event model.Event, title, mes
 }
 
 // NotifyFunc returns a logger.NotifyFunc that dispatches notifications via this Dispatcher.
-func (d *Dispatcher) NotifyFunc() logger.NotifyFunc {
+// If accountName is non-empty it is appended to the title so each account's
+// notifications are distinguishable.
+func (d *Dispatcher) NotifyFunc(accountName string) logger.NotifyFunc {
 	return func(ctx context.Context, message string, event model.Event) {
-		d.Dispatch(ctx, event, "Twitch Miner", message)
+		title := "Twitch Miner"
+		if accountName != "" {
+			title = fmt.Sprintf("Twitch Miner [%s]", accountName)
+		}
+		d.Dispatch(ctx, event, title, message)
 	}
 }
 

@@ -130,7 +130,7 @@ func (m *Miner) Run(ctx context.Context) error {
 	}
 
 	m.notify = notify.NewDispatcher(m.cfg.Notifications, m.log)
-	m.log.SetNotifyFunc(m.notify.NotifyFunc())
+	m.log.SetNotifyFunc(m.notify.NotifyFunc(m.cfg.Username))
 
 	m.pubsub = pubsub.NewPool(m.twitch.AuthProvider(), m.log, m)
 

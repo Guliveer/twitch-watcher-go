@@ -29,7 +29,7 @@ var eventEmoji = map[string]string{
 	"BET_FILTERS":           "🎰",
 	"BET_GENERAL":           "🎰",
 	"BET_FAILED":            "🎰",
-	"DROP_CLAIM":            "🎯",
+	"DROP_CLAIM":            "📦",
 	"DROP_STATUS":           "📦",
 	"STREAMER_ONLINE":       "🟢",
 	"STREAMER_OFFLINE":      "⚫",
