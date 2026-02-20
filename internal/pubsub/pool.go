@@ -231,27 +231,39 @@ func (p *Pool) runConnection(ctx context.Context, conn *Connection) error {
 
 		backoff = time.Duration(math.Min(float64(backoff*2), float64(maxBackoff)))
 
-		if err := p.reconnect(ctx, conn); err != nil {
+		newConn, err := p.reconnect(ctx, conn)
+		if err != nil {
 			p.log.Error("Reconnection failed", "conn", conn.index, "error", err)
 			continue
 		}
 
+		// Continue the loop with the new connection; no extra goroutine spawned.
+		conn = newConn
 		backoff = time.Second
 		p.log.Info("PubSub connection re-established", "conn", conn.index)
 	}
 }
 
-func (p *Pool) reconnect(ctx context.Context, conn *Connection) error {
-	topics := conn.Topics()
+// reconnect closes the old connection (which also closes its messages channel,
+// terminating the old forwarder goroutine), creates a new connection, replaces
+// it in the pool, starts a new forwarder, and re-subscribes all topics.
+// It returns the new connection so the caller can continue using it directly,
+// avoiding any extra goroutine spawning.
+func (p *Pool) reconnect(ctx context.Context, oldConn *Connection) (*Connection, error) {
+	topics := oldConn.Topics()
 
-	newConn, err := NewConnection(ctx, conn.index, p.auth, p.log)
+	// Close the old connection: closes the WebSocket and the messages channel,
+	// which causes the old forwarder goroutine to exit.
+	oldConn.Close()
+
+	newConn, err := NewConnection(ctx, oldConn.index, p.auth, p.log)
 	if err != nil {
-		return fmt.Errorf("dialing PubSub for reconnection: %w", err)
+		return nil, fmt.Errorf("dialing PubSub for reconnection: %w", err)
 	}
 
 	p.mu.Lock()
 	for i, c := range p.conns {
-		if c == conn {
+		if c == oldConn {
 			p.conns[i] = newConn
 			break
 		}
@@ -260,16 +272,10 @@ func (p *Pool) reconnect(ctx context.Context, conn *Connection) error {
 	p.mu.Unlock()
 
 	if err := newConn.Subscribe(topics); err != nil {
-		return fmt.Errorf("re-subscribing topics after reconnection: %w", err)
+		return nil, fmt.Errorf("re-subscribing topics after reconnection: %w", err)
 	}
 
-	go func() {
-		if err := newConn.Run(ctx); err != nil && ctx.Err() == nil {
-			p.log.Error("Reconnected connection failed", "conn", newConn.index, "error", err)
-		}
-	}()
-
-	return nil
+	return newConn, nil
 }
 
 // startForwarder launches a goroutine that reads from a connection's messages

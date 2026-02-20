@@ -3,6 +3,7 @@ package miner
 import (
 	"context"
 	"math/rand/v2"
+	"runtime"
 	"time"
 
 	"github.com/Guliveer/twitch-miner-go/internal/constants"
@@ -84,6 +85,8 @@ func (m *Miner) runCampaignSync(ctx context.Context) error {
 	if err := m.twitch.SyncCampaigns(ctx, streamers); err != nil {
 		m.log.Warn("Initial campaign sync failed", "error", err)
 	}
+	// Hint GC to reclaim transient campaign sync allocations
+	runtime.GC()
 
 	ticker := time.NewTicker(constants.DefaultCampaignSyncInterval)
 	defer ticker.Stop()
@@ -100,6 +103,8 @@ func (m *Miner) runCampaignSync(ctx context.Context) error {
 				}
 				m.log.Warn("Campaign sync failed", "error", err)
 			}
+			// Hint GC to reclaim transient campaign sync allocations
+			runtime.GC()
 		}
 	}
 }

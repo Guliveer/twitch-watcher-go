@@ -154,6 +154,9 @@ func (c *Connection) Close() {
 	defer c.mu.Unlock()
 
 	c.isConnected = false
+	// Clear stale nonce→topic mappings; any pending LISTEN responses will
+	// never arrive after disconnect, so these entries would leak otherwise.
+	clear(c.nonceToTopic)
 	if c.conn != nil {
 		c.conn.Close(websocket.StatusNormalClosure, "closing")
 	}
@@ -205,8 +208,9 @@ func (c *Connection) readLoop(ctx context.Context) error {
 		err := wsjson.Read(ctx, c.conn, &resp)
 		if err != nil {
 			c.mu.Lock()
-			c.isConnected = false
-			c.mu.Unlock()
+				c.isConnected = false
+				clear(c.nonceToTopic)
+				c.mu.Unlock()
 
 			if ctx.Err() != nil {
 				return ctx.Err()

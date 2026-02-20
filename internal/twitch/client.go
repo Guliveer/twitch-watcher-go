@@ -61,6 +61,19 @@ func (sc *spadeCache) set(login, url string) {
 	sc.entries[login] = spadeCacheEntry{url: url, fetchedAt: time.Now()}
 }
 
+// prune removes all expired entries from the cache. This is called after each
+// successful spade URL update to clean up stale entries from streamers that
+// were removed by the category watcher.
+func (sc *spadeCache) prune() {
+	sc.mu.Lock()
+	defer sc.mu.Unlock()
+	for login, entry := range sc.entries {
+		if time.Since(entry.fetchedAt) > spadeCacheTTL {
+			delete(sc.entries, login)
+		}
+	}
+}
+
 // Client is the high-level Twitch API facade combining auth and GQL client.
 // It provides business-logic methods for the miner.
 type Client struct {
@@ -260,7 +273,7 @@ func (c *Client) updateSpadeURL(ctx context.Context, streamer *model.Streamer) e
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(io.LimitReader(resp.Body, 2<<20))
+	body, err := io.ReadAll(io.LimitReader(resp.Body, 512<<10))
 	if err != nil {
 		return fmt.Errorf("reading response from %s: %w", streamerURL, err)
 	}
@@ -282,7 +295,7 @@ func (c *Client) updateSpadeURL(ctx context.Context, streamer *model.Streamer) e
 	}
 	defer settingsResp.Body.Close()
 
-	settingsBody, err := io.ReadAll(io.LimitReader(settingsResp.Body, 2<<20))
+	settingsBody, err := io.ReadAll(io.LimitReader(settingsResp.Body, 512<<10))
 	if err != nil {
 		return fmt.Errorf("reading settings response: %w", err)
 	}
@@ -295,6 +308,7 @@ func (c *Client) updateSpadeURL(ctx context.Context, streamer *model.Streamer) e
 	spadeURL := string(spadeMatch[1])
 
 	c.spadeURLs.set(username, spadeURL)
+	c.spadeURLs.prune()
 
 	streamer.Mu.Lock()
 	streamer.Stream.SpadeURL = spadeURL

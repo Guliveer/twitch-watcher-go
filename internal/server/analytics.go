@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/pprof"
 	"sync"
 	"time"
 
@@ -55,6 +56,16 @@ func NewAnalyticsServer(addr string, log *logger.Logger) *AnalyticsServer {
 
 	mux.HandleFunc("POST /api/test-notification", s.handleTestNotification)
 	mux.Handle("GET /static/", http.StripPrefix("/static/", http.FileServerFS(staticFS)))
+
+	// pprof endpoints for remote memory profiling
+	mux.HandleFunc("GET /debug/pprof/", pprof.Index)
+	mux.HandleFunc("GET /debug/pprof/cmdline", pprof.Cmdline)
+	mux.HandleFunc("GET /debug/pprof/profile", pprof.Profile)
+	mux.HandleFunc("GET /debug/pprof/symbol", pprof.Symbol)
+	mux.HandleFunc("GET /debug/pprof/trace", pprof.Trace)
+	mux.Handle("GET /debug/pprof/heap", pprof.Handler("heap"))
+	mux.Handle("GET /debug/pprof/goroutine", pprof.Handler("goroutine"))
+	mux.Handle("GET /debug/pprof/allocs", pprof.Handler("allocs"))
 
 	s.srv = &http.Server{
 		Addr:              addr,
