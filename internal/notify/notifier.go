@@ -135,7 +135,7 @@ func (d *Dispatcher) NotifyFunc(accountName string) logger.NotifyFunc {
 	return func(ctx context.Context, message string, event model.Event) {
 		title := "Twitch Miner"
 		if accountName != "" {
-			title = fmt.Sprintf("Twitch Miner [%s]", accountName)
+			title = fmt.Sprintf("[%s]", accountName)
 		}
 		d.Dispatch(ctx, event, title, message)
 	}
